@@ -16,12 +16,19 @@ if 'HEROKU_APP_NAME' in os.environ:
     ALLOWED_HOSTS.append(f"{os.environ.get('HEROKU_APP_NAME')}.herokuapp.com")
 
 # Configuration de la base de données pour Railway
-# Utilise la variable d'environnement DATABASE_URL fournie par Railway
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
-# Force l'utilisation de l'URL de la base de données Railway
+# Utilise directement les variables MySQL de Railway
 DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('MYSQL_DATABASE', 'railway'),
+        'USER': os.environ.get('MYSQL_USER', 'root'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+        'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
+        'PORT': os.environ.get('MYSQL_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
+    }
 }
 
 # Configuration des fichiers statiques
