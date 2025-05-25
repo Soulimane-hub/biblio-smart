@@ -11,17 +11,17 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-#fya$(xkt6x-3a
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Configuration des hôtes autorisés
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.herokuapp.com', '.up.railway.app']
 if 'HEROKU_APP_NAME' in os.environ:
     ALLOWED_HOSTS.append(f"{os.environ.get('HEROKU_APP_NAME')}.herokuapp.com")
 
-# Configuration de la base de données pour Heroku
-# Utilise la variable d'environnement DATABASE_URL fournie par Heroku
+# Configuration de la base de données pour Railway
+# Utilise la variable d'environnement DATABASE_URL fournie par Railway
 DATABASE_URL = os.environ.get('DATABASE_URL', None)
 if DATABASE_URL:
-    # Configure avec l'URL de la base de données Heroku
+    # Configure avec l'URL de la base de données Railway
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
 else:
     # Configuration par défaut pour le développement local

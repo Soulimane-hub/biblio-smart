@@ -6,13 +6,13 @@ import sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'biblio_projet.settings_prod')
 django.setup()
 
-print("Initialisation de la base de données PostgreSQL sur Heroku...")
+print("Initialisation de la base de données MySQL sur Railway...")
 
 # Vérifier si la variable DATABASE_URL est définie
 db_url = os.environ.get('DATABASE_URL')
 if not db_url:
     print("Erreur: La variable d'environnement DATABASE_URL n'est pas définie.")
-    print("Assurez-vous d'avoir ajouté l'add-on PostgreSQL à votre application Heroku.")
+    print("Assurez-vous d'avoir ajouté une base de données MySQL à votre projet Railway.")
     sys.exit(1)
 
 print("Configuration de la base de données détectée.")
