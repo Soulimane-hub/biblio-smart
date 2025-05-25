@@ -1,0 +1,583 @@
+{% load static %}
+<!-- Section Emprunts -->
+<div id="loans-content" class="dashboard-content">
+  {% csrf_token %}
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Gestion des Emprunts</h3>
+      <div class="table-actions">
+        <a href="{% url 'emprunt_history' %}" class="btn btn-primary">
+          <i class="fas fa-history"></i> Historique des emprunts
+        </a>
+      </div>
+    </div>
+    
+    <style>
+  /* Styles pour la section emprunts */
+  .dashboard-content {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Styles pour l'en-tête de la table */
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Styles pour les onglets */
+  .tabs-container {
+    margin-bottom: 20px;
+  }
+  
+  .tabs {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .tab-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background-color: #fff;
+    cursor: pointer;
+  }
+  
+  .tab-button.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  /* Styles pour les contenus d'onglets */
+  .tab-content {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 0 8px 8px 8px;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .tab-content:not(.active) {
+    display: none;
+  }
+  
+  /* Styles pour les tables */
+  .crud-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .crud-table th, .crud-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .crud-table th {
+    background-color: #f0f0f0;
+  }
+  
+  /* Styles pour les badges */
+  .badge {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  /* Styles pour les icônes de statut */
+  .status-icon {
+    font-size: 18px;
+    margin-right: 10px;
+  }
+  
+  .status-icon.status-success {
+    color: #2ecc71;
+  }
+  
+  .status-icon.status-danger {
+    color: #e74c3c;
+  }
+  
+  /* Styles pour les badges de statut */
+  .status-badge {
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+  
+  .status-badge.status-available {
+    background-color: #2ecc71;
+    color: #fff;
+  }
+  
+  .status-badge.status-unavailable {
+    background-color: #e74c3c;
+    color: #fff;
+  }
+  
+  .status-badge.status-pending {
+    background-color: #007bff;
+    color: #fff;
+  }
+</style>
+    
+    <!-- Onglets pour la section emprunts -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab-button {% if active_tab == 'active-loans' or not active_tab %}active{% endif %}" onclick="openLoansTab('active-loans')">Emprunts actifs</button>
+        <button class="tab-button {% if active_tab == 'return-requests' %}active{% endif %}" onclick="openLoansTab('return-requests')">Demandes de retour {% if demandes_retour.count > 0 %}<span class="badge">{{ demandes_retour.count }}</span>{% endif %}</button>
+        <button class="tab-button {% if active_tab == 'returned-loans' %}active{% endif %}" onclick="openLoansTab('returned-loans')">Emprunts retournés</button>
+      </div>
+    </div>
+    
+    <!-- Onglet des emprunts actifs -->
+    <div id="active-loans" class="tab-content {% if active_tab == 'active-loans' or not active_tab %}active{% endif %}">
+      <table class="crud-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Livre</th>
+          <th>Lecteur</th>
+          <th>Date d'emprunt</th>
+          <th>Date de retour prévue</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emprunt in all_emprunts %}
+        <tr>
+          <td>{{ emprunt.id }}</td>
+          <td>{{ emprunt.livre.titre }}</td>
+          <td>{{ emprunt.lecteur.username }}</td>
+          <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+          <td>{{ emprunt.date_retour_prevue|date:"d/m/Y" }}</td>
+          <td>
+            {% if emprunt.date_retour_prevue < current_date %}
+              <span class="status-badge status-unavailable">En retard</span>
+            {% else %}
+              <span class="status-badge status-pending">En cours</span>
+            {% endif %}
+          </td>
+          <td class="crud-actions">
+            <button class="btn-crud btn-view" onclick="viewEmpruntDetails('{{ emprunt.id }}')"><i class="fas fa-eye"></i></button>
+            {% if request.user.is_staff %}
+              <button class="btn-crud btn-return" onclick="returnBook('{{ emprunt.id }}')" title="Retourner ce livre"><i class="fas fa-undo-alt"></i></button>
+            {% else %}
+              <button class="btn-crud btn-request" onclick="requestReturn('{{ emprunt.id }}')" title="Demander le retour"><i class="fas fa-paper-plane"></i></button>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">Aucun emprunt actif trouvé</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    
+    <!-- Onglet des demandes de retour -->
+    <div id="return-requests" class="tab-content {% if active_tab == 'return-requests' %}active{% endif %}">
+      {% if demandes_retour %}
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>LIVRE</th>
+            <th>LECTEUR</th>
+            <th>DATE EMPRUNT</th>
+            <th>DATE RETOUR PREVUE</th>
+            <th>DEMANDE RETOUR</th>
+            <th>EST RETOURNE</th>
+            <th>ÉTAT</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emprunt in demandes_retour %}
+          <tr>
+            <td><a href="{% url 'book_details' emprunt.livre.id %}" class="book-link">{{ emprunt.livre.titre }}</a></td>
+            <td>{{ emprunt.lecteur.username }}</td>
+            <td>{{ emprunt.date_emprunt|date:"M d, Y" }}</td>
+            <td>{{ emprunt.date_retour_prevue|date:"M d, Y" }}</td>
+            <td class="text-center">
+              {% if emprunt.demande_retour %}
+                <span class="status-icon status-success"><i class="fas fa-check-circle"></i></span>
+              {% else %}
+                <span class="status-icon status-danger"><i class="fas fa-times-circle"></i></span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if emprunt.est_retourne %}
+                <span class="status-icon status-success"><i class="fas fa-check-circle"></i></span>
+              {% else %}
+                <span class="status-icon status-danger"><i class="fas fa-times-circle"></i></span>
+              {% endif %}
+            </td>
+            <td>
+              {% if emprunt.est_retourne %}
+                <span class="status-badge status-available">Retourné</span>
+              {% elif emprunt.date_retour_prevue < current_date %}
+                <span class="status-badge status-unavailable">En retard</span>
+              {% else %}
+                <span class="status-badge status-pending">En cours</span>
+              {% endif %}
+            </td>
+            <td class="crud-actions">
+              <form method="POST" action="{% url 'validate_return_simple' emprunt.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-crud btn-success" title="Valider le retour">
+                  <i class="fas fa-check"></i> Valider
+                </button>
+              </form>
+              <form method="POST" action="{% url 'refuse_return_simple' emprunt.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-crud btn-danger" title="Refuser le retour">
+                  <i class="fas fa-times"></i> Refuser
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-check-circle"></i>
+        <p>Aucune demande de retour en attente</p>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Onglet des emprunts retournés -->
+    <div id="returned-loans" class="tab-content {% if active_tab == 'returned-loans' %}active{% endif %}">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Livre</th>
+            <th>Lecteur</th>
+            <th>Date d'emprunt</th>
+            <th>Date de retour prévue</th>
+            <th>Date de retour réelle</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emprunt in emprunts_retournes %}
+          <tr>
+            <td>{{ emprunt.id }}</td>
+            <td>{{ emprunt.livre.titre }}</td>
+            <td>{{ emprunt.lecteur.username }}</td>
+            <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+            <td>{{ emprunt.date_retour_prevue|date:"d/m/Y" }}</td>
+            <td>{{ emprunt.date_retour_reel|date:"d/m/Y" }}</td>
+            <td>
+              {% if emprunt.date_retour_reel > emprunt.date_retour_prevue %}
+                <span class="status-badge status-unavailable">Retourné en retard</span>
+              {% else %}
+                <span class="status-badge status-available">Retourné à temps</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">Aucun emprunt retourné trouvé</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<!-- Script pour les onglets -->
+<script src="{% static 'library/js/return_handlers.js' %}"></script>
+
+<script>
+function openLoansTab(tabName) {
+  // Cacher tous les contenus d'onglets
+  var tabContents = document.getElementsByClassName("tab-content");
+  for (var i = 0; i < tabContents.length; i++) {
+    tabContents[i].classList.remove("active");
+  }
+  
+  // Désactiver tous les boutons d'onglets
+  var tabButtons = document.getElementsByClassName("tab-button");
+  for (var i = 0; i < tabButtons.length; i++) {
+    tabButtons[i].classList.remove("active");
+  }
+  
+  // Afficher l'onglet sélectionné et activer le bouton correspondant
+  document.getElementById(tabName).classList.add("active");
+  event.currentTarget.classList.add("active");
+}
+</script>
+</div>
+
+<script>
+  // Fonction pour recharger le contenu du dashboard
+  function loadDashboardContent(section) {
+    fetch(`/dashboard/${section}/`)
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('loans-content').innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors du rechargement du contenu.');
+      });
+  }
+  // Fonction pour ouvrir un onglet spécifique
+  function openLoansTab(tabName) {
+    // Cacher tous les contenus d'onglets
+    var tabContents = document.getElementsByClassName('tab-content');
+    for (var i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.remove('active');
+    }
+    
+    // Désactiver tous les boutons d'onglets
+    var tabButtons = document.getElementsByClassName('tab-button');
+    for (var i = 0; i < tabButtons.length; i++) {
+      tabButtons[i].classList.remove('active');
+    }
+    
+    // Afficher le contenu de l'onglet sélectionné
+    document.getElementById(tabName).classList.add('active');
+    
+    // Activer le bouton d'onglet correspondant
+    event.currentTarget.classList.add('active');
+  }
+  
+  // Fonction pour retourner un livre
+  function returnBook(empruntId) {
+    console.log('Retour du livre pour l\'emprunt ID:', empruntId);
+    if (confirm('Confirmez-vous le retour de ce livre ?')) {
+      // Créer un formulaire pour envoyer la requête avec le token CSRF
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/return-book/${empruntId}/`;
+      
+      // Ajouter le token CSRF
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = getCookie('csrftoken');
+      form.appendChild(csrfInput);
+      
+      // Ajouter au document et soumettre
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+  
+  // Fonction pour voir les détails d'un emprunt
+  function viewEmpruntDetails(empruntId) {
+    // Implémenter cette fonction pour afficher les détails d'un emprunt
+    alert('Fonctionnalité de visualisation des détails en cours de développement');
+  }
+  
+  // Fonction pour demander le retour d'un livre
+  function requestReturn(empruntId) {
+    console.log('Demande de retour pour l\'emprunt ID:', empruntId);
+    if (confirm('Confirmez-vous la demande de retour de ce livre ?')) {
+      // Créer un formulaire pour envoyer la requête avec le token CSRF
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/request-return/${empruntId}/`;
+      
+      // Ajouter le token CSRF
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = getCookie('csrftoken');
+      form.appendChild(csrfInput);
+      
+      // Ajouter au document et soumettre
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+  
+  // Fonction pour obtenir le token CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  // Ajouter un gestionnaire d'événements pour les boutons de validation de retour
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sélectionner tous les boutons de validation de retour
+    const validateButtons = document.querySelectorAll('.validate-return-btn');
+    
+    // Ajouter un gestionnaire d'événements à chaque bouton
+    validateButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const empruntId = this.getAttribute('data-emprunt-id');
+        validateReturnAjax(empruntId);
+      });
+    });
+  });
+  
+  // Fonction pour valider un retour via AJAX
+  function validateReturnAjax(empruntId) {
+    // Créer une requête AJAX
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `/validate-return-ajax/${empruntId}/`);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText);
+        
+        if (response.success) {
+          // Afficher un message de succès
+          alert(`Le retour du livre "${response.livre_titre}" a été validé avec succès.`);
+          
+          // Supprimer la ligne de l'emprunt de l'onglet des demandes de retour
+          const empruntRow = document.querySelector(`button[data-emprunt-id="${empruntId}"]`).closest('tr');
+          if (empruntRow) {
+            empruntRow.remove();
+          }
+          
+          // Mettre à jour le compteur de demandes de retour
+          const demandesCount = document.querySelectorAll('#return-requests tbody tr').length;
+          const badgeElement = document.querySelector('.tab-button:nth-child(2) .badge');
+          if (badgeElement) {
+            if (demandesCount > 0) {
+              badgeElement.textContent = demandesCount;
+            } else {
+              badgeElement.remove();
+            }
+          }
+          
+          // Basculer vers l'onglet des emprunts retournés
+          openLoansTab('returned-loans');
+          
+          // Recharger la liste des emprunts retournés
+          loadReturnedLoans();
+        } else {
+          // Afficher un message d'erreur
+          alert(`Erreur: ${response.message || response.error}`);
+        }
+      } else {
+        // Afficher un message d'erreur en cas d'échec de la requête
+        alert('Une erreur est survenue lors de la validation du retour.');
+      }
+    };
+    
+    xhr.onerror = function() {
+      alert('Une erreur est survenue lors de la communication avec le serveur.');
+    };
+    
+    xhr.send();
+  }
+  
+  // Fonction pour recharger la liste des emprunts retournés
+  function loadReturnedLoans() {
+    // Recharger la page avec l'onglet des emprunts retournés actif
+    window.location.href = '/dashboard/loans/?tab=returned-loans';
+  }
+  // Fonction pour valider un retour
+  function validateReturn(empruntId) {
+    if (!confirm('Êtes-vous sûr de vouloir valider ce retour ?')) {
+      return;
+    }
+    
+    console.log('Validation du retour pour l\'emprunt ID:', empruntId);
+    
+    // Récupérer le token CSRF
+    const csrftoken = getCookie('csrftoken');
+    
+    // Afficher un message de chargement
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'loading-message';
+    loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement en cours...';
+    document.body.appendChild(loadingMsg);
+    
+    // Créer un formulaire pour envoyer la requête
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/validate-return/${empruntId}/`;
+    form.style.display = 'none';
+    
+    // Ajouter le token CSRF
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrftoken;
+    form.appendChild(csrfInput);
+    
+    // Ajouter au document et soumettre
+    document.body.appendChild(form);
+    
+    // Soumettre le formulaire
+    form.submit();
+    
+    // Supprimer le formulaire après soumission
+    setTimeout(() => {
+      document.body.removeChild(form);
+    }, 100);
+  }
+
+  // Fonction pour refuser un retour
+  function refuseReturn(empruntId) {
+    if (!confirm('Êtes-vous sûr de vouloir refuser cette demande de retour ?')) {
+      return;
+    }
+    
+    console.log('Refus du retour pour l\'emprunt ID:', empruntId);
+    
+    // Récupérer le token CSRF
+    const csrftoken = getCookie('csrftoken');
+    
+    // Afficher un message de chargement
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'loading-message';
+    loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement en cours...';
+    document.body.appendChild(loadingMsg);
+    
+    // Créer un formulaire pour envoyer la requête
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/refuse-return-request/${empruntId}/`;
+    form.style.display = 'none';
+    
+    // Ajouter le token CSRF
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrftoken;
+    form.appendChild(csrfInput);
+    
+    // Ajouter au document et soumettre
+    document.body.appendChild(form);
+    
+    // Soumettre le formulaire
+    form.submit();
+    
+    // Supprimer le formulaire après soumission
+    setTimeout(() => {
+      document.body.removeChild(form);
+    }, 100);
+  }
+</script>

@@ -1,0 +1,95 @@
+{% load static %}
+
+<!-- Template pour le modal d'ajout/modification de livre -->
+<form method="POST" enctype="multipart/form-data" id="bookForm">
+    {% csrf_token %}
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if livre %}
+        <input type="hidden" name="bookId" value="{{ livre.id }}">
+        <input type="hidden" name="formAction" value="edit">
+    {% else %}
+        <input type="hidden" name="formAction" value="add">
+    {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="titre" class="form-label">Titre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="titre" name="titre" value="{{ livre.titre|default:'' }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="auteur" class="form-label">Auteur <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="auteur" name="auteur" value="{{ livre.auteur|default:'' }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="isbn" name="isbn" value="{{ livre.isbn|default:'' }}" maxlength="13" placeholder="Ex: 9782070368228">
+                            <div class="form-text">Format ISBN-13 (13 chiffres sans tirets)</div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="annee_publication" class="form-label">Année de publication</label>
+                            <input type="number" class="form-control" id="annee_publication" name="annee_publication" value="{{ livre.annee_publication|default:'' }}" min="1800" max="2100" placeholder="Ex: 2023">
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="categorie" class="form-label">Catégorie <span class="text-danger">*</span></label>
+                            <select class="form-select" id="categorie" name="categorie" required>
+                                <option value="" disabled {% if not livre %}selected{% endif %}>Sélectionnez une catégorie</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if livre.categorie == cat %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="stock" class="form-label">Stock <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="stock" name="stock" min="0" value="{{ livre.stock|default:'1' }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="prix" class="form-label">Prix (MAD) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="prix" name="prix" min="0" step="0.01" value="{{ livre.prix|default:'0' }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="photo" class="form-label">Photo de couverture {% if not livre %}<span class="text-danger">*</span>{% endif %}</label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/jpeg,image/png,image/gif" {% if not livre %}required{% endif %}>
+                            <div class="form-text">Formats acceptés: JPG, PNG, GIF. Taille maximale: 5 MB.</div>
+                            {% if livre.photo %}
+                                <div class="mt-2">
+                                    <img src="{{ livre.photo.url }}" alt="{{ livre.titre }}" class="img-thumbnail" style="max-height: 100px;">
+                                    <p class="small text-muted">Photo actuelle. Téléchargez une nouvelle photo pour la remplacer.</p>
+                                    <input type="hidden" name="photo_existante" value="{{ livre.photo }}">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Le champ de description a été supprimé -->
+                
+                <div class="form-actions">
+                    <a href="{% url 'dashboard' %}" class="btn-cancel">Annuler</a>
+                    <button type="submit" class="btn-submit">
+                        {% if livre %}
+                            Enregistrer les modifications
+                        {% else %}
+                            Ajouter le livre
+                        {% endif %}
+                    </button>
+                </div>
+</form>

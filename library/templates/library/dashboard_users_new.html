@@ -1,0 +1,187 @@
+<!-- Section Utilisateurs -->
+<div id="users-content" class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Gestion des Utilisateurs</h3>
+      <div class="table-actions">
+        <button class="btn-add" onclick="showUserModal()">
+          <i class="fas fa-plus"></i> Ajouter un utilisateur
+        </button>
+      </div>
+    </div>
+    <table class="crud-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom d'utilisateur</th>
+          <th>Email</th>
+          <th>Date d'inscription</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+          <td>
+            {% if user.is_superuser %}
+              <span class="status-badge status-admin">Admin</span>
+            {% else %}
+              <span class="status-badge status-user">Lecteur</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if user.is_active %}
+              <span class="status-badge status-available">Actif</span>
+            {% else %}
+              <span class="status-badge status-unavailable">Inactif</span>
+            {% endif %}
+          </td>
+          <td class="crud-actions">
+            <button class="btn-crud btn-view" onclick="viewUserDetails('{{ user.id }}')"><i class="fas fa-eye"></i></button>
+            <button class="btn-crud btn-edit" onclick="editUser('{{ user.id }}')"><i class="fas fa-edit"></i></button>
+            <button class="btn-crud btn-delete" onclick="deleteUser('{{ user.id }}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">Aucun utilisateur trouvé</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Fonction pour récupérer le cookie CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Fonction pour ajouter un utilisateur
+  function showUserModal() {
+    console.log('Ouverture du formulaire d\'ajout d\'utilisateur');
+    // Créer un formulaire pour rediriger vers la page d'ajout d'utilisateur
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = '/gerer-utilisateur/';
+    
+    // Ajouter l'action d'ajout
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'add';
+    form.appendChild(actionInput);
+    
+    // Ajouter au document et soumettre
+    document.body.appendChild(form);
+    form.submit();
+  }
+  
+  // Fonction pour voir les détails d'un utilisateur
+  function viewUserDetails(userId) {
+    console.log('Affichage des détails de l\'utilisateur ID:', userId);
+    // Créer un formulaire pour rediriger vers la page de détails de l'utilisateur
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = '/gerer-utilisateur/';
+    
+    // Ajouter l'ID de l'utilisateur à afficher
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'user_id';
+    userIdInput.value = userId;
+    form.appendChild(userIdInput);
+    
+    // Ajouter l'action de visualisation
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'view';
+    form.appendChild(actionInput);
+    
+    // Ajouter au document et soumettre
+    document.body.appendChild(form);
+    form.submit();
+  }
+  
+  // Fonction pour éditer un utilisateur
+  function editUser(userId) {
+    console.log('Modification de l\'utilisateur ID:', userId);
+    // Créer un formulaire pour rediriger vers la page d'édition de l'utilisateur
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = '/gerer-utilisateur/';
+    
+    // Ajouter l'ID de l'utilisateur à éditer
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'user_id';
+    userIdInput.value = userId;
+    form.appendChild(userIdInput);
+    
+    // Ajouter l'action d'édition
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'edit';
+    form.appendChild(actionInput);
+    
+    // Ajouter au document et soumettre
+    document.body.appendChild(form);
+    form.submit();
+  }
+  
+  // Fonction pour supprimer un utilisateur
+  function deleteUser(userId) {
+    console.log('Suppression de l\'utilisateur ID:', userId);
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+      // Créer un formulaire pour envoyer la requête de suppression
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/gerer-utilisateur/';
+      
+      // Ajouter l'ID de l'utilisateur à supprimer
+      const userIdInput = document.createElement('input');
+      userIdInput.type = 'hidden';
+      userIdInput.name = 'user_id';
+      userIdInput.value = userId;
+      form.appendChild(userIdInput);
+      
+      // Ajouter l'action de suppression
+      const actionInput = document.createElement('input');
+      actionInput.type = 'hidden';
+      actionInput.name = 'action';
+      actionInput.value = 'delete';
+      form.appendChild(actionInput);
+      
+      // Ajouter le token CSRF
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = getCookie('csrftoken');
+      form.appendChild(csrfInput);
+      
+      // Ajouter au document et soumettre
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+</script>

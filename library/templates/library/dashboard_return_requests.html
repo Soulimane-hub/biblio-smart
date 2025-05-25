@@ -1,0 +1,258 @@
+{% extends 'library/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<!-- Section Demandes de Retour -->
+<style>
+  .return-requests-container {
+    margin-top: 20px;
+  }
+  
+  .book-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .book-thumbnail-placeholder {
+    width: 40px;
+    height: 60px;
+    background-color: #f0f5fa;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a3a5a;
+  }
+  
+  .book-author {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .user-info-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .no-requests {
+    text-align: center;
+    padding: 30px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .no-requests i {
+    font-size: 48px;
+    color: #5280af;
+    margin-bottom: 15px;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+  }
+  
+  .status-available {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .status-unavailable {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .btn-crud {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+  
+  .btn-success {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .btn-danger {
+    background-color: #f44336;
+    color: white;
+  }
+</style>
+
+<div id="return-requests-content" class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Demandes de Retour de Livres</h3>
+      <div class="subtitle">{{ demandes_retour.count }} demande(s) en attente</div>
+    </div>
+    
+    <div class="search-filter-container">
+      <form method="get" action="{% url 'dashboard_return_requests' %}" class="search-form">
+        <div class="search-input-container">
+          <input type="text" name="search" placeholder="Rechercher par titre, auteur ou nom d'utilisateur..." value="{{ search_query|default:'' }}" class="search-input">
+          <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
+        </div>
+      </form>
+    </div>
+    
+    {% csrf_token %}
+    
+    {% if demandes_retour.count > 0 %}
+    <div class="return-requests-container">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Livre</th>
+            <th>Lecteur</th>
+            <th>Date d'emprunt</th>
+            <th>Date de retour prévue</th>
+            <th>Date de demande</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emprunt in demandes_retour %}
+          <tr>
+            <td>{{ emprunt.id }}</td>
+            <td>
+              <div class="book-info">
+                <div class="book-thumbnail-placeholder"><i class="fas fa-book"></i></div>
+                <div>
+                  <strong>{{ emprunt.livre.titre }}</strong>
+                  <div class="book-author">{{ emprunt.livre.auteur }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="user-info-compact">
+                <i class="fas fa-user-circle"></i>
+                {{ emprunt.lecteur.username }}
+              </div>
+            </td>
+            <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+            <td>{{ emprunt.date_retour_prevue|date:"d/m/Y" }}</td>
+            <td>{{ emprunt.date_demande_retour|date:"d/m/Y H:i" }}</td>
+            <td>
+              {% if emprunt.date_retour_prevue < current_date %}
+                <span class="status-badge status-unavailable">En retard</span>
+              {% else %}
+                <span class="status-badge status-available">Dans les délais</span>
+              {% endif %}
+            </td>
+            <td class="crud-actions">
+              <button class="btn-crud btn-success" onclick="validateReturn('{{ emprunt.id }}')" title="Valider le retour">
+                <i class="fas fa-check"></i> Valider
+              </button>
+              <button class="btn-crud btn-danger" onclick="refuseReturn('{{ emprunt.id }}')" title="Refuser la demande">
+                <i class="fas fa-times"></i> Refuser
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="no-requests">
+      <i class="fas fa-inbox"></i>
+      <h3>Aucune demande de retour en attente</h3>
+      <p>Lorsque des lecteurs demanderont à retourner leurs livres, leurs demandes apparaîtront ici.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // Fonction pour obtenir le cookie CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  // Fonction pour valider un retour
+  function validateReturn(empruntId) {
+    if (!confirm('Êtes-vous sûr de vouloir valider ce retour ?')) {
+      return;
+    }
+    
+    // Récupérer le token CSRF
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value || getCookie('csrftoken');
+    
+    // Envoyer la requête de validation
+    fetch(`/validate-return/${empruntId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        // Recharger la page pour mettre à jour la liste
+        window.location.reload();
+      } else {
+        alert('Erreur: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      alert('Une erreur est survenue lors de la validation du retour.');
+    });
+  }
+  
+  // Fonction pour refuser un retour
+  function refuseReturn(empruntId) {
+    if (!confirm('Êtes-vous sûr de vouloir refuser cette demande de retour ?')) {
+      return;
+    }
+    
+    // Récupérer le token CSRF
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value || getCookie('csrftoken');
+    
+    // Envoyer la requête de refus
+    fetch(`/refuse-return-request/${empruntId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        // Recharger la page pour mettre à jour la liste
+        window.location.reload();
+      } else {
+        alert('Erreur: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Erreur:', error);
+      alert('Une erreur est survenue lors du refus de la demande de retour.');
+    });
+  }
+</script>

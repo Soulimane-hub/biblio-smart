@@ -1,0 +1,79 @@
+<!-- Section Livres -->
+<div id="books-content" class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Gestion des Livres</h3>
+      <div class="table-actions">
+        <button class="btn-add" onclick="showBookModal()">
+          <i class="fas fa-plus"></i> Ajouter un livre
+        </button>
+      </div>
+    </div>
+    
+    <!-- Onglets pour la section livres -->   
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab-button active">Catalogue</button>
+      </div>
+    </div>
+    <div id="livres-list" class="tab-content active">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Auteur</th>
+            <th>Catégorie</th>
+            <th>Stock</th>
+            <th>Prix</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for livre in all_livres %}
+          <tr>
+            <td>{{ livre.id }}</td>
+            <td>{{ livre.titre }}</td>
+            <td>{{ livre.auteur }}</td>
+            <td>{{ livre.categorie }}</td>
+            <td>{{ livre.stock }}</td>
+            <td>{{ livre.prix }} MAD</td>
+            <td>
+              {% with note=livre.get_note_moyenne %}
+              {% if note > 0 %}
+                <div class="stars">
+                  {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= note|floatformat:"0" %}
+                      <i class="fas fa-star" style="color: #ffc107;"></i>
+                    {% else %}
+                      <i class="far fa-star" style="color: #ffc107;"></i>
+                    {% endif %}
+                  {% endfor %}
+                  ({{ note|floatformat:1 }})
+                </div>
+              {% else %}
+                <span>Pas de note</span>
+              {% endif %}
+              {% endwith %}
+            </td>
+            <td class="crud-actions">
+              <button class="btn-crud btn-view" data-id="{{ livre.id }}" onclick="viewBookDetails('{{ livre.id }}')"><i class="fas fa-eye"></i></button>
+              <button class="btn-crud btn-edit" data-id="{{ livre.id }}" onclick="showBookModal('{{ livre.id }}')"><i class="fas fa-edit"></i></button>
+              <button class="btn-crud btn-delete" data-id="{{ livre.id }}" onclick="deleteBook('{{ livre.id }}')"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8">Aucun livre trouvé</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Fin de la section des livres -->
+  </div>
+</div>
+
+<!-- Les fonctions JavaScript ont été déplacées vers le fichier book_handlers.js -->

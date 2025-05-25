@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BiblioSmart - Historique</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'library/images/image.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'library/css/blue_theme.css' %}">
+  <style>
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f5fa; /* Fond bleu pâle */
+      color: #1a3a5a; /* Bleu foncé pour le texte */
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 70px; /* Juste en dessous de la navbar */
+      z-index: 10;
+      border-bottom: 3px solid #1a3a5a; /* Bleu foncé */
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #5e4b3e; /* Brun foncé comme la navbar */
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: #5280af; /* Bleu clair pour les accents */
+      transform: translateY(-2px);
+    }
+
+    .tab.active {
+      background: #1a3a5a; /* Bleu foncé */
+      color: #ffffff; /* Blanc */
+      box-shadow: 0 4px 8px rgba(26, 58, 90, 0.2);
+    }
+    
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      background-color: #5280af; /* Bleu clair pour les accents */
+      border-radius: 50%;
+    }
+
+    .tab-icon {
+      font-size: 1.2em;
+    }
+
+    .history-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .history-section.active {
+      display: block;
+    }
+
+    .history-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 2px solid #5280af; /* Bleu clair pour les accents */
+      position: relative;
+    }
+    
+    .history-title::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 50px;
+      height: 2px;
+      background-color: #5e4b3e; /* Brun foncé comme la navbar */
+    }
+
+    .title-icon {
+      font-size: 1.5em;
+      color: #3498db;
+    }
+
+    .history-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .history-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .history-card:hover {
+      background: #e9ecef;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-header h3 {
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    .card-details {
+      margin-bottom: 0.75rem;
+      padding: 1rem;
+      background-color: #f0f5fa; /* Bleu très clair */
+      border-radius: 6px;
+      border-left: 3px solid #5280af; /* Bleu clair pour les accents */
+    }
+    
+    .card-details p {
+      margin: 0.6rem 0;
+      line-height: 1.5;
+    }
+    
+    .card-details strong {
+      color: #5e4b3e; /* Brun foncé comme la navbar */
+      font-weight: 600;
+    }
+
+    .card-details p {
+      margin: 0.25rem 0;
+      color: #666;
+    }
+
+    .card-status {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    .status-warning {
+      background-color: #fff8e1;
+      color: #f57f17;
+      border: 1px solid #ffe082;
+    }
+
+    .status-danger {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem;
+      justify-content: flex-end;
+      background: linear-gradient(to bottom, #ffffff, #f9f6f0); /* Dégradé subtil */
+      border-top: 1px solid #f0e6d2; /* Beige plus foncé */
+    }
+
+    .btn-return,
+    .btn-cancel,
+    .btn-download,
+    .btn-pay {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-return {
+      background-color: #5e4b3e; /* Brun foncé comme la navbar */
+      color: #f5f1e8; /* Beige clair */
+    }
+
+    .btn-return:hover {
+      background-color: #4a3c32;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-cancel {
+      background-color: #c62828; /* Rouge foncé */
+      color: white;
+    }
+
+    .btn-cancel:hover {
+      background-color: #b71c1c;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-pay {
+      background-color: #27ae60; /* Vert */
+      color: white;
+    }
+    
+    .btn-pay:hover {
+      background-color: #219653;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-download {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-download:hover {
+      background: #2980b9;
+    }
+
+    .history-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 2rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin: 2rem 0;
+    }
+
+    .empty-icon {
+      font-size: 3em;
+      color: #3498db;
+    }
+
+    .empty-message h3 {
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    .empty-message p {
+      margin: 0;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .tab {
+        flex: 1;
+        max-width: 200px;
+      }
+
+      .history-card {
+        padding: 0.75rem;
+      }
+    }
+
+    #emprunts .empty-state {
+      top: 100px; /* Position under emprunts title */
+    }
+
+    #reservations .empty-state {
+      top: 100px; /* Position under reservations title */
+    }
+
+    #amendes .empty-state {
+      top: 100px; /* Position under amendes title */
+    }
+
+    #recus .empty-state {
+      top: 100px; /* Position under recus title */
+    }
+
+    .empty-state {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 80%;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    
+    .empty-state-title {
+      font-size: 1.2em;
+
+#amendes .empty-state {
+  top: 100px; /* Position under amendes title */
+}
+
+#recus .empty-state {
+  top: 100px; /* Position under recus title */
+}
+      line-height: 1.2;
+    }
+
+    .empty-state-icon {
+      font-size: 2.5em;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .empty-state-title {
+      font-size: 1.2em;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .empty-state-description {
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      color: white;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #f0e6d2; /* Beige plus foncé */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to right, #ffffff, #f9f6f0); /* Dégradé subtil */
+    }
+
+    .navbar-left, .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar-logo img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .navbar-logo span {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .username {
+      background: rgba(255,255,255,0.1);
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar a:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    .navbar a.active {
+      background: rgba(255,255,255,0.2);
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+      }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .history-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border-left: 4px solid #c9b18c; /* Doré pour les accents */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeIn 0.5s ease-out forwards;
+      animation-delay: calc(var(--animation-order, 0) * 0.1s);
+      opacity: 0;
+    }
+    
+    .history-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .history-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .history-title {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: white;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 350px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .history-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .history-empty {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .history-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-details h3 {
+      color: #2c3e50;
+      margin: 0 0 8px 0;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    .history-details p {
+      margin: 4px 0;
+      color: #495057;
+      font-size: 0.95em;
+    }
+
+    .history-status-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      min-width: 120px;
+      padding-left: 15px;
+    }
+
+    .btn-return, .btn-cancel {
+      background: none;
+      border: 2px solid #2c3e50;
+      color: #2c3e50;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-return:hover {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .btn-cancel:hover {
+      background: #dc3545;
+      color: white;
+    }
+
+    .status-success {
+      color: #28a745;
+      font-weight: 500;
+    }
+
+    .status-warning {
+      color: #ffc107;
+      font-weight: 500;
+    }
+
+    .status-danger {
+      color: #dc3545;
+      font-weight: 500;
+    }
+
+    .tab {
+      background: none;
+      border: 1px solid #2c3e50;
+      color: #2c3e50;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-width: 120px;
+      text-align: center;
+      font-size: 0.95em;
+    }
+
+    .tab:hover {
+      background: #f8f9fa;
+      color: #2c3e50;
+    }
+
+    .tab.active {
+      background: #2c3e50;
+      color: white;
+      border-color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+      .history-item {
+        flex-direction: column;
+        padding: 12px;
+      }
+
+      .history-status-group {
+        width: 100%;
+        align-items: stretch;
+        margin-top: 8px;
+        padding-left: 0;
+      }
+
+      .history-status {
+        text-align: center;
+      }
+    }
+
+    .tab:hover {
+      background: #34495e;
+      color: white;
+    }
+
+    .tab.active {
+      background: #2c3e50;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .history-item {
+        flex-direction: column;
+      }
+
+      .history-status-group {
+        width: 100%;
+        align-items: stretch;
+        margin-top: 15px;
+      }
+
+      .history-status {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  {% csrf_token %}
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="{% url 'home' %}" class="navbar-logo">
+        <img src="{% static 'library/images/image.png' %}" alt="BiblioSmart Logo">
+        <span>BiblioSmart</span>
+      </a>
+      <a href="{% url 'history' %}" class="active">📋 Historique</a>
+    </div>
+    <div class="navbar-right">
+      <span class="username">👤 {{ user.username }}</span>
+      <a href="{% url 'register' %}">🚪 Déconnexion</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" onclick="showSection('emprunts')">
+        <i class="fas fa-book-reader"></i> Emprunts
+      </button>
+      <button class="tab" onclick="showSection('reservations')">
+        <i class="fas fa-calendar-check"></i> Réservations
+      </button>
+      <button class="tab" onclick="showSection('amendes')">
+        <i class="fas fa-exclamation-circle"></i> Amendes
+      </button>
+      <button class="tab" onclick="showSection('recus')">
+        <i class="fas fa-file-invoice"></i> Reçus
+      </button>
+    </div>
+
+    <div id="emprunts" class="history-section active">
+        <div class="history-title">
+            <i class="fas fa-book-reader title-icon"></i>
+            <h2>Mes Emprunts</h2>
+        </div>
+        <div class="history-content">
+            {% if emprunts %}
+                {% for emprunt in emprunts %}
+                <div class="history-card">
+                    <div class="card-header">
+                        <h3>{{ emprunt.livre.titre }}</h3>
+                        <span class="card-status {% if emprunt.date_retour_reel %}status-success{% else %}status-warning{% endif %}">
+                            {% if emprunt.date_retour_reel %}
+                                {% if emprunt.retour_valide_admin %}
+                                    ✅ Retour validé
+                                {% else %}
+                                    ✅ Retourné
+                                {% endif %}
+                            {% else %}
+                                📖 En cours
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-details">
+                        <p><strong>Date de prêt:</strong> {{ emprunt.date_emprunt|date:"d/m/Y" }}</p>
+                        <p><strong>Date de retour:</strong> {{ emprunt.date_retour_prevue|date:"d/m/Y" }}</p>
+                        {% if emprunt.date_retour_prevue < today %}
+                        <p class="status-danger">⚠️ En retard de {{ emprunt.jours_retard }} jours</p>
+                        <p class="status-danger">Amende: {{ emprunt.montant_amende }} MAD</p>
+                        {% else %}
+                        <p class="status-warning">🕒 {{ emprunt.jours_restants }} jours restants</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-actions">
+                        {% if emprunt.date_retour_reel %}
+                            <span class="return-date">
+                                {% if emprunt.retour_valide_admin %}
+                                    Retour validé le {{ emprunt.date_retour_reel|date:"d/m/Y" }}
+                                {% else %}
+                                    Retourné le {{ emprunt.date_retour_reel|date:"d/m/Y" }}
+                                {% endif %}
+                            </span>
+                        {% elif emprunt.demande_retour %}
+                            <span class="return-pending"><i class="fas fa-clock"></i> Demande de retour en attente</span>
+                        {% else %}
+                            <button type="button" class="btn-return" onclick="requestReturn('{{ emprunt.id }}')">
+                                <i class="fas fa-undo-alt"></i> Demander le retour
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="history-empty">
+                    <i class="fas fa-book-reader empty-icon"></i>
+                    <div class="empty-message">
+                        <h3>Aucun emprunt en cours</h3>
+                        <p>Vous n'avez actuellement aucun livre emprunté.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="reservations" class="history-section">
+        <div class="history-title">
+            <i class="fas fa-calendar-check title-icon"></i>
+            <h2>Mes Réservations</h2>
+        </div>
+        <div class="history-content">
+            {% if reservations %}
+                {% for reservation in reservations %}
+                <div class="history-card">
+                    <div class="card-header">
+                        <h3>{{ reservation.livre.titre }}</h3>
+                        <span class="card-status status-warning">En attente</span>
+                    </div>
+                    <div class="card-details">
+                        <p><strong>Date de réservation:</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</p>
+                        <p><strong>Statut:</strong> {% if reservation.statut == 'attente' %}En attente{% else %}Annulée{% endif %}</p>
+                    </div>
+                    <div class="card-actions">
+                        <form method="post" action="{% url 'annuler_reservation' reservation.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-cancel">
+                                <i class="fas fa-times"></i> Annuler
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="history-empty">
+                    <i class="fas fa-calendar-check empty-icon"></i>
+                    <div class="empty-message">
+                        <h3>Aucune réservation</h3>
+                        <p>Vous n'avez actuellement aucune réservation en cours.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="amendes" class="history-section">
+        <div class="history-title">
+            <i class="fas fa-exclamation-circle title-icon"></i>
+            <h2>Mes Amendes</h2>
+        </div>
+        <div class="history-content">
+            {% if amendes %}
+                {% for amende in amendes %}
+                <div class="history-card">
+                    <div class="card-header">
+                        <h3>Amende pour {{ amende.emprunt.livre.titre }}</h3>
+                        <span class="card-status {% if amende.payee %}status-success{% else %}status-danger{% endif %}">
+                            {% if amende.payee %}Payée{% else %}Non payée{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-details">
+                        <p><strong>Raison:</strong> {{ amende.raison }}</p>
+                        <p><strong>Montant:</strong> {{ amende.montant }} MAD</p>
+                        <p><strong>Date:</strong> {{ amende.date_creation|date:"d/m/Y" }}</p>
+                    </div>
+                    {% if not amende.payee %}
+                    <div class="card-actions">
+                        <a href="{% url 'payer_amende' amende.id %}" class="btn-pay">
+                            <i class="fas fa-credit-card"></i> Payer maintenant
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="history-empty">
+                    <i class="fas fa-exclamation-circle empty-icon"></i>
+                    <div class="empty-message">
+                        <h3>Aucune amende</h3>
+                        <p>Vous n'avez actuellement aucune amende.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="recus" class="history-section">
+        <div class="history-title">
+            <i class="fas fa-file-invoice title-icon"></i>
+            <h2>Mes Reçus</h2>
+        </div>
+        <div class="history-content">
+            {% if paiements %}
+                {% for paiement in paiements %}
+<div class="history-card receipt-card" style="display: flex; flex-direction: column; align-items: center; padding: 1.5rem 1rem;">
+    <div class="receipt-header" style="text-align:center; margin-bottom: 1rem;">
+        <img src="{% static 'library/images/image.png' %}" alt="BiblioSmart Logo" style="height:48px;margin-bottom:8px;">
+        <div style="font-weight:bold; font-size:1.2em; margin-bottom:12px;">BiblioSmart</div>
+    </div>
+    <div class="receipt-fields" style="width:100%; max-width:320px; display:flex; flex-direction:column; gap:8px;">
+        <p><strong>Date:</strong> {{ paiement.date|date:"d/m/Y" }}</p>
+        <p><strong>Montant:</strong> {{ paiement.amount }} MAD</p>
+        {% if paiement.livre %}
+            <p><strong>Numéro de livre:</strong> {{ paiement.livre.id }}</p>
+        {% elif paiement.emprunt %}
+            <p><strong>Numéro de livre:</strong> {{ paiement.emprunt.livre.id }}</p>
+        {% endif %}
+        {% if paiement.type == 'emprunt' or paiement.type == 'amende' or paiement.type == 'reservation' %}
+            <p><strong>Description:</strong> {{ paiement.description }}</p>
+        {% endif %}
+    </div>
+    <div class="card-actions" style="margin-top:10px;">
+        <a href="{% url 'download_receipt' paiement.id %}" class="btn btn-download">
+            <i class="fas fa-download"></i> Télécharger
+        </a>
+    </div>
+</div>
+{% endfor %}
+            {% else %}
+                <div class="history-empty">
+                    <i class="fas fa-file-invoice empty-icon"></i>
+                    <div class="empty-message">
+                        <h3>Aucun reçu</h3>
+                        <p>Vous n'avez actuellement aucun reçu de paiement.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+  <script>
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+      showSection('emprunts');
+    });
+
+    // Tab switching function
+    function showSection(sectionName) {
+      try {
+        // Hide all sections
+        document.querySelectorAll('.history-section').forEach(section => {
+          section.style.display = 'none';
+        });
+        
+        // Show the selected section
+        const section = document.getElementById(sectionName);
+        if (section) {
+          section.style.display = 'block';
+        }
+        
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        
+        const activeTab = document.querySelector(`[onclick='showSection("${sectionName}")']`);
+        if (activeTab) {
+          activeTab.classList.add('active');
+        }
+        
+        // Apply animation to cards in the visible section
+        animateCards(sectionName);
+      } catch (error) {
+        console.error('Error switching tabs:', error);
+      }
+    }
+    
+    // Animation function for cards
+    function animateCards(sectionName) {
+      const cards = document.querySelectorAll(`#${sectionName} .history-card`);
+      cards.forEach((card, index) => {
+        card.style.setProperty('--animation-order', index);
+        // Reset animation
+        card.style.animation = 'none';
+        card.offsetHeight; // Trigger reflow
+        card.style.animation = 'fadeIn 0.5s ease-out forwards';
+        card.style.animationDelay = `${index * 0.1}s`;
+      });
+    }
+    
+    // Fonction pour demander le retour d'un livre
+    function requestReturn(empruntId) {
+      try {
+        if (confirm('Êtes-vous sûr de vouloir demander le retour de ce livre ? Un administrateur devra valider votre demande.')) {
+          console.log('Requesting return for loan ID:', empruntId);
+          
+          // Récupérer le token CSRF - vérifier plusieurs sources possibles
+          let csrftoken = null;
+          const csrfInput = document.querySelector('input[name=csrfmiddlewaretoken]');
+          
+          if (csrfInput) {
+            csrftoken = csrfInput.value;
+          } else {
+            // Essayer de récupérer depuis les cookies
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.startsWith('csrftoken=')) {
+                csrftoken = cookie.substring('csrftoken='.length, cookie.length);
+                break;
+              }
+            }
+          }
+          
+          if (!csrftoken) {
+            alert('Erreur: Impossible de récupérer le token CSRF. Veuillez rafraîchir la page et réessayer.');
+            return;
+          }
+          
+          // Afficher un message de chargement
+          const loadingMessage = document.createElement('div');
+          loadingMessage.className = 'loading-message';
+          loadingMessage.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement de votre demande...';
+          document.body.appendChild(loadingMessage);
+          
+          // Envoyer la requête de demande de retour
+          fetch(`/request-return/${empruntId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Supprimer le message de chargement
+            document.body.removeChild(loadingMessage);
+            
+            if (data.success) {
+              alert('Votre demande de retour a été enregistrée et sera traitée par un administrateur.');
+              // Recharger la page pour mettre à jour l'affichage
+              window.location.reload();
+            } else {
+              alert(`Erreur: ${data.message || 'Une erreur est survenue lors de la demande de retour.'}`);
+            }
+          })
+          .catch(error => {
+            // Supprimer le message de chargement
+            if (document.body.contains(loadingMessage)) {
+              document.body.removeChild(loadingMessage);
+            }
+            
+            console.error('Error requesting return:', error);
+            alert(`Une erreur est survenue lors de la demande de retour: ${error.message}`);
+          });
+        }
+      } catch (error) {
+        console.error('Error in requestReturn function:', error);
+        alert(`Une erreur est survenue lors de la demande de retour: ${error.message}`);
+      }
+    }
+
+    function cancelReservation(reservationId) {
+      try {
+        if (confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) {
+          console.log('Canceling reservation with ID:', reservationId);
+          // TODO: Implement cancel reservation functionality
+        }
+      } catch (error) {
+        console.error('Error canceling reservation:', error);
+      }
+    }
+
+    function downloadReceipt(receiptId) {
+      try {
+        console.log('Downloading receipt with ID:', receiptId);
+        // TODO: Implement receipt download functionality
+      } catch (error) {
+        console.error('Error downloading receipt:', error);
+      }
+    }
+  </script>
+</body>
+</html>

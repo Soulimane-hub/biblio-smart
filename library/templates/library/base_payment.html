@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Bibliothèque{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'library/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'library/css/blue_theme.css' %}">
+</head>
+<style>
+  html, body {
+    min-height: 100vh;
+    background: linear-gradient(120deg, #f0f5fa 0%, #e2e8f0 100%);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+</style>
+<body>
+    <style>
+  .navbar {
+    background: linear-gradient(90deg, #1a3a5a 0%, #3f6a95 100%);
+    color: white;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: visible;
+    z-index: 10;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+main {
+    padding-top: 70px;
+}
+  .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+  }
+  
+  .navbar-title {
+    margin-left: auto;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .navbar-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+  }
+  
+  .navbar-back:hover {
+    color: #728eab;
+  }
+</style>
+<div class="navbar">
+  <a href="{% url 'home' %}" class="navbar-back" title="Retour à l'accueil">←</a>
+  <span class="navbar-logo">
+    <img src="https://cdn-icons-png.flaticon.com/512/891/891419.png" alt="Paiement" style="width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); background: #fff;" loading="lazy">
+    BiblioSmart
+  </span>
+  <span class="navbar-title">Paiement sécurisé</span>
+  <span style="width:20px;"></span>
+</div>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BiblioSmart - Notifications</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'library/images/image.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'library/css/blue_theme.css' %}">
+  <style>
+    body {
+      font-family: 'Bookman Old Style', 'Garamond', 'Segoe UI', serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f5fa; /* Fond bleu pâle */
+      color: #1a3a5a; /* Bleu foncé pour le texte */
+      background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none" stroke="%23728eab" stroke-width="2" stroke-dasharray="5,5" /></svg>');
+    }
+    
+    /* Styles pour les onglets */
+    .tabs {
+      display: flex;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .tab-btn {
+      flex: 1;
+      padding: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a3a5a;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tab-btn:hover {
+      background-color: #f0f5fa;
+    }
+    
+    .tab-btn.active {
+      background-color: #1a3a5a;
+      color: #fff;
+    }
+    
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #5280af;
+    }
+    
+    .tab-content {
+      display: none;
+      animation: fadeEffect 0.5s;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    @keyframes fadeEffect {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    
+    /* Styles pour les sections */
+    .section-title {
+      font-size: 1.5rem;
+      color: #1a3a5a;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #5280af;
+    }
+    
+    /* Styles pour les cartes de notification */
+    .highlight-card {
+      border-left: 5px solid #ffc107;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .notification-message {
+      margin: 15px 0;
+      padding: 10px;
+    }
+    
+    .message-box {
+      display: flex;
+      align-items: flex-start;
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .message-box i {
+      font-size: 1.5rem;
+      margin-right: 15px;
+      color: #17a2b8;
+    }
+    
+    .success-message .message-box i {
+      color: #28a745;
+    }
+    
+    .info-message .message-box i {
+      color: #17a2b8;
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #1a3a5a, #3f6a95); /* Dégradé de bleu foncé à moyen */
+      color: #ffffff;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #5280af; /* Bordure bleu clair */
+    }
+
+    .navbar-left, .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar-logo img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .navbar-logo span {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .username {
+      background: rgba(255,255,255,0.1);
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .page-title {
+      text-align: center;
+      color: #1a3a5a;
+      font-family: 'Bookman Old Style', 'Garamond', serif;
+      margin-bottom: 2rem;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    .page-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #5280af, transparent);
+    }
+
+    .notification-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      border-left: 5px solid #5280af;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .notification-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    }
+
+    .notification-header {
+      background: #f0f5fa;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #728eab;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .notification-title {
+      font-weight: bold;
+      color: #1a3a5a;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .notification-body {
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .notification-status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .status-available {
+      background: #ffefd5;
+      color: #d4a017;
+      border: 1px solid #ffd700;
+    }
+
+    .status-paid {
+      background: #e6f7e6;
+      color: #2e8b57;
+      border: 1px solid #98fb98;
+    }
+
+    .status-waiting {
+      background: #e6e6fa;
+      color: #6a5acd;
+      border: 1px solid #b0c4de;
+    }
+
+    .book-info {
+      display: flex;
+      margin-top: 1rem;
+      background: #f0f5fa;
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px dashed #728eab;
+    }
+
+    .book-cover {
+      width: 80px;
+      height: 120px;
+      background: #728eab;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .book-cover i {
+      font-size: 2rem;
+      color: #3f6a95;
+    }
+
+    .book-cover::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #5280af, transparent);
+    }
+
+    .book-details {
+      flex: 1;
+    }
+
+    .book-details h4 {
+      margin: 0 0 0.5rem 0;
+      color: #1a3a5a;
+    }
+
+    .book-details p {
+      margin: 0.3rem 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-pay {
+      background: linear-gradient(135deg, #4caf50, #2e8b57);
+      color: white;
+      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-pay:hover {
+      background: linear-gradient(135deg, #43a047, #2e7d32);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+      color: white;
+      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+    }
+
+    .btn-cancel:hover {
+      background: linear-gradient(135deg, #e53935, #c62828);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(244, 67, 54, 0.4);
+    }
+
+    .expiration-notice {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #728eab;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .empty-state h3 {
+      color: #1a3a5a;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+      color: #666;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Décoration de bibliothèque */
+    .shelf-decoration {
+      height: 15px;
+      background: linear-gradient(90deg, #1a3a5a, #3f6a95, #5280af, #3f6a95, #1a3a5a);
+      margin-bottom: 3px;
+    }
+
+    .shelf-edge {
+      height: 5px;
+      background: linear-gradient(90deg, #5280af, #728eab, #5280af);
+      margin-bottom: 1px;
+    }
+
+    @media (max-width: 768px) {
+      .notification-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Décoration de bibliothèque en haut de page -->
+  <div class="shelf-decoration"></div>
+  <div class="shelf-edge"></div>
+
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="{% url 'home' %}" class="navbar-logo">
+        <img src="{% static 'library/images/image.png' %}" alt="BiblioSmart Logo">
+        <span>BiblioSmart</span>
+      </a>
+      <a href="{% url 'history' %}">📋 Historique</a>
+    </div>
+    <div class="navbar-right">
+      <a href="{% url 'notifications' %}" style="position:relative; margin-right: 15px;">
+        <i class="fas fa-bell" style="font-size: 1.2rem; color: #f5f1e8;"></i>
+        {% if notifications_count > 0 %}
+        <span style="position:absolute; top:-7px; right:-7px; background:#ff5252; color:white; border-radius:50%; font-size:0.75rem; padding:2px 6px; min-width: 18px; text-align: center;">{{ notifications_count }}</span>
+        {% endif %}
+      </a>
+      <span class="username">👤 {{ user.username }}</span>
+      <a href="{% url 'register' %}">🚪 Déconnexion</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1 class="page-title">📬 Notifications de Livres Disponibles</h1>
+
+    <!-- Titre de la section -->
+    <div class="section-header">
+      <h2 class="section-title">📚 Livres disponibles - Paiement requis</h2>
+    </div>
+
+    <!-- Livres disponibles à payer -->
+    <div class="notification-content">
+      
+      {% if reservations_notifiees %}
+        {% for reservation in reservations_notifiees %}
+          <div class="notification-card highlight-card">
+            <div class="notification-header">
+              <div class="notification-title">
+                <i class="fas fa-book"></i> Livre disponible
+              </div>
+              <span class="notification-status status-available">Action requise</span>
+            </div>
+            
+            <div class="notification-body">
+              <div class="book-info">
+                <div class="book-cover">
+                  {% if reservation.livre.image %}
+                    <img src="{{ reservation.livre.image.url }}" alt="{{ reservation.livre.titre }}">
+                  {% else %}
+                    <i class="fas fa-book-open"></i>
+                  {% endif %}
+                </div>
+                <div class="book-details">
+                  <h4>{{ reservation.livre.titre }}</h4>
+                  <p><strong>Auteur:</strong> {{ reservation.livre.auteur }}</p>
+                  <p><strong>Prix:</strong> {{ reservation.livre.prix }} MAD</p>
+                  <p><strong>Date de réservation:</strong> {{ reservation.date_reservation|date:"d/m/Y" }}</p>
+                  <p><strong>Notifié le:</strong> {{ reservation.date_notification|date:"d/m/Y à H:i" }}</p>
+                </div>
+              </div>
+              
+              <div class="notification-message">
+                <div class="message-box">
+                  <i class="fas fa-info-circle"></i>
+                  <p>Ce livre est maintenant disponible pour vous. Pour finaliser votre emprunt, vous devez effectuer le paiement pour pouvoir emprunter ce livre.</p>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="reservation_id" value="{{ reservation.id }}">
+                  <input type="hidden" name="action" value="payer">
+                  <button type="submit" class="btn btn-pay">
+                    <i class="fas fa-credit-card"></i> Payer emprunt
+                  </button>
+                </form>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="reservation_id" value="{{ reservation.id }}">
+                  <input type="hidden" name="action" value="annuler">
+                  <button type="submit" class="btn btn-cancel">
+                    <i class="fas fa-times-circle"></i> Annuler la réservation
+                  </button>
+                </form>
+              </div>
+              
+              <div class="expiration-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Vous avez 24h pour effectuer le paiement, sinon la réservation sera annulée automatiquement.</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-check-circle"></i>
+          <h3>Aucun livre en attente de paiement</h3>
+          <p>Vous n'avez pas de livres disponibles en attente de paiement pour le moment.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Script JavaScript supprimé car il n'y a plus d'onglets à gérer -->
+</body>
+</html>

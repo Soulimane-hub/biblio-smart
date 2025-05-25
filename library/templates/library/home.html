@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BiblioSmart - Accueil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'library/images/image.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'library/css/blue_theme.css' %}">
+  <style>
+    body {
+      font-family: 'Bookman Old Style', 'Garamond', 'Segoe UI', serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f5fa; /* Fond bleu pâle */
+      color: #1a3a5a; /* Bleu foncé pour le texte */
+      background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none" stroke="%23728eab" stroke-width="2" stroke-dasharray="5,5" /></svg>');
+    }
+
+    .navbar {
+      background: linear-gradient(135deg, #1a3a5a, #3f6a95); /* Dégradé de bleu foncé à moyen */
+      color: #f0f5fa;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #5280af; /* Bordure bleu clair */
+    }
+
+    .navbar-left, .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .navbar-logo img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .navbar-logo span {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .username {
+      background: rgba(255,255,255,0.1);
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar a:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    .navbar a.active {
+      background: rgba(255,255,255,0.2);
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      position: relative;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 10px;
+      background-image: linear-gradient(90deg, transparent, #c9b18c, transparent);
+      border-radius: 50%;
+    }
+
+    .search-bar {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      border: 1px solid #e0d8c0;
+      background-image: url('data:image/svg+xml;utf8,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><path d="M1,1 L19,1 L19,19 L1,19 Z" fill="none" stroke="%23c9b18c" stroke-width="2" /></svg>');
+      background-position: right bottom;
+      background-repeat: no-repeat;
+    }
+
+    .search-form {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 0.8rem 1.2rem;
+      border: 2px solid #e1e1e1;
+      border-radius: 25px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8a7866, #5e4b3e);
+      color: white;
+      border: 1px solid #c9b18c;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 1rem 0;
+    }
+
+    .book-card {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #e0d8c0;
+      position: relative;
+    }
+    
+    .book-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      background-image: url('data:image/svg+xml;utf8,<svg width="30" height="30" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L30,0 L30,30 Z" fill="%23c9b18c" /></svg>');
+      opacity: 0.7;
+    }
+
+    .book-image {
+      width: 100%;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f5ee;
+      overflow: hidden;
+      padding: 10px;
+      border-bottom: 1px solid #e0d8c0;
+      position: relative;
+    }
+    
+    .book-image::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #c9b18c, transparent, #c9b18c);
+      opacity: 0.5;
+    }
+    
+    .book-image img {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+    
+    .book-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(26, 58, 90, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .book-card:hover .book-overlay {
+      opacity: 1;
+    }
+    
+    .overlay-content {
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+    
+    .view-details {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      border: 2px solid white;
+      transition: all 0.3s ease;
+    }
+    
+    .book-card:hover .view-details {
+      transform: scale(1.1);
+    }
+    
+    .ribbon-available {
+      background: linear-gradient(135deg, transparent 0%, #3c6e47 0%);
+    }
+    
+    .ribbon-unavailable {
+      background: linear-gradient(135deg, transparent 0%, #8a383f 0%);
+    }
+    
+    .book-category {
+      display: inline-block;
+      padding: 5px 10px;
+      background: #f0f5fa;
+      color: #1a3a5a;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .book-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .book-info {
+      padding: 1.5rem;
+    }
+
+    .book-info h3 {
+      margin: 0 0 0.5rem 0;
+      color: #1a3a5a;
+      font-size: 1.2rem;
+      font-family: 'Bookman Old Style', 'Garamond', serif;
+      border-bottom: 1px dotted #728eab;
+      padding-bottom: 8px;
+    }
+
+    .book-info p {
+      margin: 0.5rem 0;
+      color: #666;
+    }
+    
+    .filters {
+      margin-bottom: 30px;
+    }
+    
+    .filter-section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      border: 1px solid #728eab;
+    }
+    
+    .filter-section h3 {
+      color: #1a3a5a;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-family: 'Bookman Old Style', 'Garamond', serif;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #5280af;
+      padding-bottom: 10px;
+    }
+    
+    .filter-group {
+      margin-bottom: 15px;
+    }
+    
+    .filter-group h4 {
+      color: #3f6a95;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .category-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .category-tag {
+      display: inline-block;
+      padding: 8px 15px;
+      background: #f0f5fa;
+      color: #1a3a5a;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      border: 1px solid #728eab;
+    }
+    
+    .category-tag:hover {
+      background: #728eab;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    
+    .category-tag.active {
+      background: #1a3a5a;
+      color: white;
+      font-weight: bold;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .author {
+      font-style: italic;
+    }
+
+    .isbn {
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .prix {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .stock {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .in-stock {
+      background: #e8f0e5;
+      color: #3c6e47;
+      border: 1px solid #c3e6cb;
+    }
+
+    .out-of-stock {
+      background: #f8e7e9;
+      color: #8a383f;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+      }
+
+      .search-form {
+        flex-direction: column;
+      }
+
+      .book-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .book-image {
+        height: 280px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .book-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+
+      .book-image {
+        height: 240px;
+      }
+
+      .book-info {
+        padding: 1rem;
+      }
+
+      .book-info h3 {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Décoration de bibliothèque en haut de page -->
+  <div style="height: 15px; background: linear-gradient(90deg, #1a3a5a, #3f6a95, #5280af, #3f6a95, #1a3a5a); margin-bottom: 3px;"></div>
+  <div style="height: 5px; background: linear-gradient(90deg, #5280af, #728eab, #5280af); margin-bottom: 1px;"></div>
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="{% url 'home' %}" class="navbar-logo">
+        <img src="{% static 'library/images/image.png' %}" alt="BiblioSmart Logo">
+        <span>BiblioSmart</span>
+      </a>
+      <a href="{% url 'history' %}">📋 Historique</a>
+      {% if user.is_staff %}
+      <a href="{% url 'dashboard' %}" style="color: white; text-decoration: none; padding: 0.7rem 1.2rem; border-radius: 25px; transition: all 0.3s ease;">📊 Tableau de bord</a>
+      {% endif %}
+    </div>
+    <div class="navbar-right">
+      <a href="{% url 'notifications' %}" style="position:relative; margin-right: 15px;">
+        <i class="fas fa-bell" style="font-size: 1.2rem; color: #f5f1e8;"></i>
+        {% if notifications_count > 0 %}
+        <span style="position:absolute; top:-7px; right:-7px; background:#ff5252; color:white; border-radius:50%; font-size:0.75rem; padding:2px 6px; min-width: 18px; text-align: center;">{{ notifications_count }}</span>
+        {% endif %}
+      </a>
+      <span class="username">👤 {{ user.username }}</span>
+      <a href="{% url 'logout' %}">🚪 Déconnexion</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="catalogue">
+      <h2 style="color: #1a3a5a; text-align: center; font-family: 'Bookman Old Style', 'Garamond', serif; margin-bottom: 1.5rem; padding-bottom: 10px; border-bottom: 2px solid #5280af; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">📚 Catalogue des Livres</h2>
+      <div class="search-bar">
+        <form method="get" action="{% url 'home' %}" class="search-form">
+          <input type="text" name="q" placeholder="Rechercher un livre par titre, auteur ou ISBN..." value="{{ recherche|default:'' }}" class="search-input">
+          {% if selected_categorie %}
+          <input type="hidden" name="categorie" value="{{ selected_categorie }}">
+          {% endif %}
+          <button type="submit" class="btn btn-primary">🔍 Rechercher</button>
+        </form>
+      </div>
+
+      <div class="filters">
+        <div class="filter-section">
+          <h3><i class="fas fa-filter"></i> Filtres</h3>
+          <div class="filter-options">
+            <div class="filter-group">
+              <h4>Catégories</h4>
+              <div class="category-tags">
+                <a href="?categorie=roman{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'roman' %}active{% endif %}">Roman</a>
+                <a href="?categorie=science{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'science' %}active{% endif %}">Science</a>
+                <a href="?categorie=histoire{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'histoire' %}active{% endif %}">Histoire</a>
+                <a href="?categorie=biographie{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'biographie' %}active{% endif %}">Biographie</a>
+                <a href="?categorie=informatique{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'informatique' %}active{% endif %}">Informatique</a>
+                <a href="?categorie=art{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'art' %}active{% endif %}">Art et Culture</a>
+                <a href="?categorie=jeunesse{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'jeunesse' %}active{% endif %}">Jeunesse</a>
+                <a href="?categorie=poesie{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'poesie' %}active{% endif %}">Poésie</a>
+                <a href="?categorie=policier  {% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'policier' %}active{% endif %}">Policier</a>
+                <a href="?categorie=fantasie{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'fantasie' %}active{% endif %}">Fantasie</a>
+                <a href="?categorie=drame{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'drame' %}active{% endif %}">Drame</a>
+                <a href="?categorie=theatre{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'theatre' %}active{% endif %}">Théâtre</a>
+                <a href="?categorie=musique{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'musique' %}active{% endif %}">Musique</a>
+                <a href="?categorie=autre{% if recherche %}&q={{ recherche }}{% endif %}" class="category-tag {% if categorie_selectionnee == 'autre' %}active{% endif %}">Autre</a>
+                <a href="{% if recherche %}?q={{ recherche }}{% else %}?{% endif %}" class="category-tag {% if not categorie_selectionnee %}active{% endif %}">Tous</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="book-grid">
+        {% for livre in livres %}
+        <div class="book-card">
+          <!-- Ruban de disponibilité supprimé -->
+          <a href="{% url 'book_details' livre.id %}" class="book-link">
+            <div class="book-image">
+              {% if livre.image %}
+                <img src="{{ livre.image.url }}" alt="{{ livre.titre }}">
+              {% else %}
+                <img src="{% static 'library/images/default-book.png' %}" alt="Image par défaut">
+              {% endif %}
+              <div class="book-overlay">
+                <div class="overlay-content">
+                  <span class="view-details">Voir détails</span>
+                </div>
+              </div>
+            </div>
+            <div class="book-info">
+              <div class="book-category">{{ livre.get_categorie_display }}</div>
+              <h3>{{ livre.titre }}</h3>
+              <p class="author"><i class="fas fa-user-edit"></i> {{ livre.auteur }}</p>
+              <div class="book-meta">
+                <p class="date"><i class="fas fa-calendar-alt"></i> {{ livre.annee_publication|default:"Année non renseignée" }}</p>
+                <p class="isbn"><i class="fas fa-barcode"></i> {{ livre.isbn|default:"ISBN non renseigné" }}</p>
+              </div>
+              <div class="book-footer">
+                <p class="prix">{{ livre.prix }} MAD</p>
+                <p class="stock-count">
+                  {% if livre.stock > 0 %}
+                  <span class="stock-badge">{{ livre.stock }}</span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </a>
+        </div>
+        {% empty %}
+        <div class="no-results">
+          <i class="fas fa-search"></i>
+          <p>Aucun livre trouvé.</p>
+          <a href="{% url 'home' %}" class="btn btn-primary">Voir tous les livres</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup d'amende -->
+  {% if show_amende_popup and amendes_non_payees %}
+  <div id="amendePopup" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-exclamation-circle"></i> Amendes non payées</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p class="warning-text">Vous avez des amendes non payées. Veuillez les régler pour pouvoir emprunter ou réserver des livres.</p>
+        
+        <div class="amendes-list">
+          {% for amende in amendes_non_payees %}
+          <div class="amende-item">
+            <div class="amende-details">
+              <h3>Amende #{{ amende.id }}</h3>
+              <p><strong>Raison:</strong> {{ amende.raison }}</p>
+              <p><strong>Livre:</strong> {{ amende.emprunt.livre.titre }}</p>
+              <p><strong>Montant:</strong> <span class="montant">{{ amende.montant }} MAD</span></p>
+            </div>
+            <div class="amende-actions">
+              <a href="{% url 'payer_amende' amende.id %}" class="btn-pay">
+                <i class="fas fa-credit-card"></i> Payer maintenant
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Styles pour le popup d'amende */
+    .modal {
+      display: block;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      overflow: auto;
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 0;
+      width: 500px;
+      max-width: 90%;
+      border-radius: 10px;
+      box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+      animation: modalFadeIn 0.4s;
+    }
+
+    @keyframes modalFadeIn {
+      from {opacity: 0; transform: translateY(-50px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #d9534f, #c9302c);
+      color: white;
+      padding: 15px 20px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .close {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #f8d7da;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .warning-text {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border-left: 5px solid #dc3545;
+    }
+
+    .amendes-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .amende-item {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .amende-item:hover {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .amende-details h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #495057;
+      font-size: 1.1rem;
+    }
+
+    .amende-details p {
+      margin: 5px 0;
+      color: #6c757d;
+    }
+
+    .montant {
+      font-weight: bold;
+      color: #dc3545;
+    }
+
+    .btn-pay {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-pay:hover {
+      background-color: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+  </style>
+
+  <script>
+    // Script pour le popup d'amende
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('amendePopup');
+      var span = document.getElementsByClassName('close')[0];
+      
+      // Fermer le popup quand on clique sur X
+      span.onclick = function() {
+        modal.style.display = 'none';
+      }
+      
+      // Fermer le popup quand on clique en dehors
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      }
+    });
+  </script>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,95 @@
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+
+# Base de données SQLite
+db.sqlite3
+db.sqlite3-journal
+
+# Fichiers média et statiques
+/media/
+/static/
+/staticfiles/
+
+# Environnement virtuel
+venv/
+ENV/
+.env
+
+# Fichiers de configuration locaux
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de logs
+*.log
+
+# Fichiers IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers spécifiques à Heroku
+.heroku/
+*.pyc
+.installed.cfg
+*.egg
+
+# Environnement virtuel
+venv/
+ENV/
+.env
+
+# Fichiers Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+
+# Fichiers statiques collectés
+staticfiles/
+
+# Fichiers spécifiques à l'IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de migration
+# migrations/
+
+# Fichiers de base de données
+*.sql
+*.sqlite3
+
+# Fichiers de configuration sensibles
+*.env
+.env.*
+
+# Fichiers temporaires
+*.bak
+*.tmp
+*~

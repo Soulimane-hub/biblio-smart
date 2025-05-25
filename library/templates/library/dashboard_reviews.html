@@ -1,0 +1,191 @@
+<!-- Section Avis -->
+<div id="reviews-content" class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Gestion des Avis</h3>
+    </div>
+    <table class="crud-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Livre</th>
+          <th>Utilisateur</th>
+          <th>Note</th>
+          <th>Commentaire</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for avis in all_avis %}
+        <tr>
+          <td>{{ avis.id }}</td>
+          <td>{{ avis.livre.titre }}</td>
+          <td>{{ avis.utilisateur.username }}</td>
+          <td>
+            <div class="stars">
+              {% for i in "12345"|make_list %}
+                {% if forloop.counter <= avis.note %}
+                  <i class="fas fa-star" style="color: #ffc107;"></i>
+                {% else %}
+                  <i class="far fa-star" style="color: #ffc107;"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </td>
+          <td>{{ avis.commentaire|truncatechars:50 }}</td>
+          <td>{{ avis.date_notation|date:"d/m/Y H:i" }}</td>
+          <td class="crud-actions">
+            <button class="btn-crud btn-view" 
+              data-id="{{ avis.id }}" 
+              data-titre="{{ avis.livre.titre|escapejs }}" 
+              data-utilisateur="{{ avis.utilisateur.username|escapejs }}" 
+              data-note="{{ avis.note }}" 
+              data-commentaire="{{ avis.commentaire|escapejs }}" 
+              data-date="{{ avis.date_notation|date:'d/m/Y H:i' }}">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn-crud btn-delete" onclick="deleteReview('{{ avis.id }}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">Aucun avis trouvé</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Modal pour afficher les détails d'un avis -->
+  <div id="review-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Détails de l'Avis</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="review-details">
+          <div class="review-book-info">
+            <h4 id="review-book-title"></h4>
+            <p>Par <span id="review-user"></span> le <span id="review-date"></span></p>
+          </div>
+          <div class="review-rating">
+            <div id="review-stars" class="stars"></div>
+          </div>
+          <div class="review-comment">
+            <h5>Commentaire:</h5>
+            <p id="review-comment-text"></p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="delete-review-btn" class="btn btn-danger">Supprimer cet avis</button>
+        <button class="btn btn-secondary close-modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Ajouter les gestionnaires d'événements aux boutons de vue
+  document.querySelectorAll('.btn-view').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.dataset.id;
+      const titre = this.dataset.titre;
+      const utilisateur = this.dataset.utilisateur;
+      const note = parseInt(this.dataset.note);
+      const commentaire = this.dataset.commentaire;
+      const date = this.dataset.date;
+      viewReviewDetails(id, titre, utilisateur, note, commentaire, date);
+    });
+  });
+
+  // Fonction pour afficher les détails d'un avis
+  function viewReviewDetails(id, titre, utilisateur, note, commentaire, date) {
+    // Remplir le modal avec les détails de l'avis
+    document.getElementById('review-book-title').textContent = titre;
+    document.getElementById('review-user').textContent = utilisateur;
+    document.getElementById('review-date').textContent = date;
+    document.getElementById('review-comment-text').textContent = commentaire;
+    
+    // Afficher les étoiles
+    const starsContainer = document.getElementById('review-stars');
+    starsContainer.innerHTML = '';
+    
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('i');
+      star.className = i <= note ? 'fas fa-star' : 'far fa-star';
+      star.style.color = '#ffc107';
+      starsContainer.appendChild(star);
+    }
+    
+    // Configurer le bouton de suppression
+    document.getElementById('delete-review-btn').onclick = function() {
+      deleteReview(id);
+    };
+    
+    // Afficher le modal
+    document.getElementById('review-modal').style.display = 'block';
+  }
+  
+  // Fonction pour supprimer un avis
+  function deleteReview(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')) {
+      // Envoyer une requête AJAX pour supprimer l'avis
+      fetch(`/delete-review/${id}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Recharger la page pour actualiser la liste des avis
+          location.reload();
+        } else {
+          alert('Erreur lors de la suppression de l\'avis: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la suppression de l\'avis.');
+      });
+    }
+  }
+  
+  // Fonction pour récupérer le cookie CSRF
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+
+<style>
+  .review-details {
+    margin-top: 20px;
+  }
+  
+  .review-comment {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+</style>

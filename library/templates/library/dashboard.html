@@ -1,0 +1,1529 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BiblioSmart - Tableau de Bord</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'library/images/image.png' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'library/js/dashboard_loader.js' %}"></script>
+  <script src="{% static 'library/js/dashboard_popups.js' %}"></script>
+  <script src="{% static 'library/js/book_actions_popup.js' %}"></script>
+  <script src="{% static 'library/js/user_handlers.js' %}"></script>
+  <script src="{% static 'library/js/loan_handlers.js' %}"></script>
+  <script>
+  // Fonction pour gérer les onglets dans la section des emprunts
+  function openLoansTab(tabName) {
+    // Cacher tous les contenus d'onglets
+    var tabContents = document.getElementsByClassName("tab-content");
+    for (var i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.remove("active");
+    }
+    
+    // Désactiver tous les boutons d'onglets
+    var tabButtons = document.getElementsByClassName("tab-button");
+    for (var i = 0; i < tabButtons.length; i++) {
+      tabButtons[i].classList.remove("active");
+    }
+    
+    // Afficher l'onglet sélectionné et activer le bouton correspondant
+    document.getElementById(tabName).classList.add("active");
+    event.currentTarget.classList.add("active");
+  }
+  </script>
+  <script src="{% static 'library/js/review_handlers.js' %}"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f5fa;
+      color: #1a3a5a;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Style pour la barre latérale */
+    .main-content {
+      display: flex;
+      min-height: calc(100vh - 70px);
+    }
+    
+    .sidebar {
+      width: 250px;
+      background: #1a3a5a;
+      color: white;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    
+    .sidebar-header {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-logo {
+      height: 30px;
+    }
+    
+    .sidebar-menu {
+      padding: 1rem 0;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    
+    .sidebar-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .sidebar-section h4 {
+      padding: 0 1.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1.5rem;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    .sidebar-link i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .container {
+      flex-grow: 1;
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+    }
+    
+    /* Styles pour les sections du tableau de bord */
+    .dashboard-section {
+      display: none !important;
+    }
+    
+    .dashboard-section.active {
+      display: block !important;
+    }
+    
+    /* Styles pour les tableaux CRUD */
+    .crud-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    
+    .crud-table th, .crud-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .crud-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+      color: #1a3a5a;
+    }
+    
+    .crud-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-crud {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .btn-edit {
+      background-color: #4caf50;
+      color: white;
+    }
+    
+    .btn-delete {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .btn-view {
+      background-color: #2196f3;
+      color: white;
+    }
+    
+    .btn-add {
+      background-color: #1a3a5a;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-title {
+      font-size: 1.8rem;
+      color: #1a3a5a;
+      margin: 0;
+    }
+
+    .dashboard-date {
+      font-size: 1rem;
+      color: #607d8b;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(26, 58, 90, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a3a5a;
+      font-size: 1.2rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a3a5a;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-description {
+      font-size: 0.9rem;
+      color: #607d8b;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-header {
+      margin-bottom: 1rem;
+    }
+
+    .chart-title {
+      font-size: 1.2rem;
+      color: #1a3a5a;
+      margin: 0;
+    }
+
+    .data-table {
+      width: 100%;
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-header {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-title {
+      font-size: 1.2rem;
+      color: #1a3a5a;
+      margin: 0;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-available {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-unavailable {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .status-pending {
+      background: #fff8e1;
+      color: #f57f17;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: #3f6a95;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .action-btn:hover {
+      color: #1a3a5a;
+    }
+
+    /* Styles pour les onglets */
+    .tabs-container {
+      margin-bottom: 1rem;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 1rem;
+    }
+    
+    .tab-button {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: #1a3a5a;
+      transition: all 0.2s ease;
+    }
+    
+    .tab-button.active {
+      border-bottom: 2px solid #1a3a5a;
+      color: #1a3a5a;
+    }
+    
+    .tab-button:hover {
+      background-color: rgba(26, 58, 90, 0.05);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .badge {
+      display: inline-block;
+      background-color: #e53935;
+      color: white;
+      border-radius: 50%;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      margin-left: 0.5rem;
+    }
+
+    /* Styles pour les modals */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 60%;
+      max-width: 600px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    
+    .close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+    }
+    
+    .close:hover {
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #1a3a5a;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    .form-group small {
+      display: block;
+      margin-top: 0.25rem;
+      color: #607d8b;
+      font-size: 0.8rem;
+    }
+    
+    .form-note {
+      margin-bottom: 1.5rem;
+      padding: 0.75rem;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #607d8b;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .btn-cancel {
+      background-color: #f0f5fa;
+      color: #1a3a5a;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .btn-submit {
+      background-color: #1a3a5a;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    /* Styles pour les onglets dans les modals */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid #e0e0e0;
+      margin: 1.5rem 0;
+    }
+    
+    .modal-tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: #607d8b;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-tab.active {
+      border-bottom: 2px solid #1a3a5a;
+      color: #1a3a5a;
+    }
+    
+    .modal-tab-content {
+      display: none;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-tab-content.active {
+      display: block;
+    }
+
+    /* Styles pour les indicateurs de chargement */
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      font-size: 1.2rem;
+      color: #1a3a5a;
+    }
+    
+    /* Styles pour les popups de notification */
+    .notification-popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 300px;
+      max-width: 400px;
+      z-index: 9999;
+      transform: translateX(110%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification-popup.show {
+      transform: translateX(0);
+    }
+    
+    .notification-popup.success {
+      border-left: 4px solid #4caf50;
+    }
+    
+    .notification-popup.error {
+      border-left: 4px solid #f44336;
+    }
+    
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .notification-content i {
+      font-size: 20px;
+    }
+    
+    .notification-popup.success i {
+      color: #4caf50;
+    }
+    
+    .notification-popup.error i {
+      color: #f44336;
+    }
+    
+    .notification-close {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0;
+      margin-left: 10px;
+    }
+    
+    /* Styles pour les popups de confirmation */
+    .confirmation-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .confirmation-popup.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .confirmation-content {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      padding: 25px;
+      width: 400px;
+      max-width: 90%;
+    }
+    
+    .confirmation-message {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .confirmation-message i {
+      font-size: 24px;
+      color: #3f6a95;
+    }
+    
+    .confirmation-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .confirmation-actions button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    
+    .confirmation-actions .btn-cancel {
+      background-color: #f0f5fa;
+      color: #1a3a5a;
+    }
+    
+    .confirmation-actions .btn-confirm {
+      background-color: #1a3a5a;
+      color: white;
+    }
+    
+    /* Styles pour le popup de chargement */
+    .loading-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .loading-popup.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .loading-content {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .loading-spinner i {
+      font-size: 2rem;
+      color: #1a3a5a;
+    }
+    
+    .loading-message {
+      font-size: 1rem;
+      color: #1a3a5a;
+      text-align: center;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-container i {
+      margin-right: 0.5rem;
+    }
+
+    /* Styles pour les états vides */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      color: #607d8b;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #90a4ae;
+    }
+
+    @media (max-width: 1200px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+      }
+
+      .container {
+        margin-top: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <!-- Sidebar vertical à gauche -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <img src="{% static 'library/images/image.png' %}" alt="BiblioSmart Logo" class="sidebar-logo">
+        <h3>BiblioSmart</h3>
+      </div>
+      <div class="sidebar-menu">
+        <div class="sidebar-section">
+          <h4>Tableau de bord</h4>
+          <a href="#statistics" class="sidebar-link active" onclick="showSection('statistics')">
+            <i class="fas fa-chart-pie"></i> Statistiques
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <h4>Gestion</h4>
+          <a href="#books" class="sidebar-link" onclick="showSection('books')">
+            <i class="fas fa-book"></i> Livres {% if demandes_retour.count > 0 %}<span class="badge">{{ demandes_retour.count }}</span>{% endif %}
+          </a>
+          <a href="#users" class="sidebar-link" onclick="showSection('users')">
+            <i class="fas fa-users"></i> Utilisateurs
+          </a>
+          <a href="#loans" class="sidebar-link" onclick="showLoans(); return false;">
+            <i class="fas fa-exchange-alt"></i> Emprunts
+          </a>
+          <!-- L'élément "Demandes de retour" a été supprimé car il est maintenant géré dans la section Emprunts -->
+          <a href="#reservations" class="sidebar-link" onclick="showReservations(); return false;">
+            <i class="fas fa-bookmark"></i> Réservations
+          </a>
+          <a href="#reviews" class="sidebar-link" onclick="showReviews(); return false;">
+            <i class="fas fa-star"></i> Avis
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <h4>Finance</h4>
+          <a href="#fines" class="sidebar-link" onclick="showSection('fines')">
+            <i class="fas fa-exclamation-circle"></i> Amendes
+          </a>
+          <a href="#payments" class="sidebar-link" onclick="showSection('payments')">
+            <i class="fas fa-money-bill-wave"></i> Paiements
+          </a>
+        </div>
+        
+        <div class="sidebar-section">
+          <h4>Compte</h4>
+          <a href="{% url 'home' %}" class="sidebar-link">
+            <i class="fas fa-home"></i> Retour à l'accueil
+          </a>
+          <a href="{% url 'logout' %}" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contenu principal -->
+    <div class="container">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Tableau de Bord</h1>
+        <div class="dashboard-date">{{ current_date }}</div>
+      </div>
+      
+      <!-- Section Statistiques -->
+      <div id="statistics" class="dashboard-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Livres Disponibles</h3>
+              <div class="stat-icon">
+                <i class="fas fa-book"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{ livres_disponibles }}</div>
+            <div class="stat-description">sur un total de {{ total_livres }} livres</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Emprunts Actifs</h3>
+              <div class="stat-icon">
+                <i class="fas fa-book-reader"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{ emprunts_actifs }}</div>
+            <div class="stat-description">dont {{ emprunts_retard }} en retard</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Réservations</h3>
+              <div class="stat-icon">
+                <i class="fas fa-bookmark"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{ reservations_actives }}</div>
+            <div class="stat-description">dont {{ reservations_payees }} payées</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Utilisateurs</h3>
+              <div class="stat-icon">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="stat-value">{{ total_utilisateurs }}</div>
+            <div class="stat-description">{{ nouveaux_utilisateurs }} nouveaux ce mois-ci</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Emprunts par Catégorie</h3>
+            </div>
+            <canvas id="categoryChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Activité Mensuelle</h3>
+            </div>
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="data-table" style="grid-column: span 2;">
+            <div class="table-header">
+              <h3 class="table-title">Livres les Plus Empruntés</h3>
+            </div>
+            <table class="crud-table">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Auteur</th>
+                  <th>Catégorie</th>
+                  <th>Emprunts</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for livre in livres_populaires %}
+                <tr>
+                  <td>{{ livre.titre }}</td>
+                  <td>{{ livre.auteur }}</td>
+                  <td>{{ livre.categorie }}</td>
+                  <td>{{ livre.nb_emprunts }}</td>
+                  <td>
+                    <div class="stars">
+                      {% for i in livre.note_etoiles %}
+                        <i class="fas fa-star" style="color: #ffc107;"></i>
+                      {% endfor %}
+                      {% for i in livre.note_vides %}
+                        <i class="far fa-star" style="color: #ffc107;"></i>
+                      {% endfor %}
+                      ({{ livre.note }})
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5">Aucun livre trouvé</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="data-table" style="grid-column: span 2;">
+            <div class="table-header">
+              <h3 class="table-title">Livres les Plus Réservés</h3>
+            </div>
+            <table class="crud-table">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Auteur</th>
+                  <th>Catégorie</th>
+                  <th>Réservations</th>
+                  <th>Disponibilité</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for livre in livres_reserves %}
+                <tr>
+                  <td>{{ livre.titre }}</td>
+                  <td>{{ livre.auteur }}</td>
+                  <td>{{ livre.categorie }}</td>
+                  <td>{{ livre.nb_reservations }}</td>
+                  <td>
+                    {% if livre.stock > 0 %}
+                      <span class="status-badge status-available">Disponible ({{ livre.stock }})</span>
+                    {% else %}
+                      <span class="status-badge status-unavailable">Indisponible</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5">Aucun livre réservé trouvé</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Section Utilisateurs -->
+      <div id="users" class="dashboard-section">
+        <div class="loading-container">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des utilisateurs...
+        </div>
+      </div>
+      
+      <!-- Section Livres -->
+      <div id="books" class="dashboard-section">
+        <div class="loading-container">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des livres...
+        </div>
+      </div>
+      
+      <!-- Section Emprunts -->
+      <div id="loans" class="dashboard-section">
+        <div class="loading-container">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des emprunts...
+        </div>
+      </div>
+      
+      <!-- Section Réservations -->
+      <div id="reservations" class="dashboard-section">
+        <div class="loading-container">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des réservations...
+        </div>
+      </div>
+      
+      <!-- Section Avis -->
+      <div id="reviews" class="dashboard-section">
+        <div class="loading-container">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des avis...
+        </div>
+      </div>
+      
+      <!-- Section Amendes -->
+      <div id="fines" class="dashboard-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3 class="table-title">Gestion des Amendes</h3>
+          </div>
+          <table class="crud-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Lecteur</th>
+                <th>Livre</th>
+                <th>Montant</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for amende in all_amendes %}
+              <tr>
+                <td>{{ amende.id }}</td>
+                <td>{{ amende.emprunt.lecteur.username }}</td>
+                <td>{{ amende.emprunt.livre.titre }}</td>
+                <td>{{ amende.montant }} MAD</td>
+                <td>{{ amende.date_creation|date:"d/m/Y" }}</td>
+                <td>
+                  {% if amende.payee %}
+                    <span class="status-badge status-available">Payée</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">Non payée</span>
+                  {% endif %}
+                </td>
+                <td class="crud-actions">
+                  <button class="btn-crud btn-view" onclick="viewAmendeDetails('{{ amende.id }}')"><i class="fas fa-eye"></i></button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7">Aucune amende trouvée</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Section Paiements -->
+      <div id="payments" class="dashboard-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3 class="table-title">Historique des Paiements</h3>
+          </div>
+          <table class="crud-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Utilisateur</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for payment in all_payments %}
+              <tr>
+                <td>{{ payment.id }}</td>
+                <td>{{ payment.user.username }}</td>
+                <td>
+                  {% if payment.amende %}
+                    Amende
+                  {% elif payment.reservation %}
+                    Réservation
+                  {% else %}
+                    Autre
+                  {% endif %}
+                </td>
+                <td>{{ payment.amount }} MAD</td>
+                <td>{{ payment.date|date:"d/m/Y H:i" }}</td>
+                <td>
+                  {% if payment.is_valid %}
+                    <span class="status-badge status-available">Validé</span>
+                  {% else %}
+                    <span class="status-badge status-unavailable">Refusé</span>
+                  {% endif %}
+                </td>
+                <td class="crud-actions">
+                  <button class="btn-crud btn-view" onclick="viewPaymentDetails('{{ payment.id }}')"><i class="fas fa-eye"></i></button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7">Aucun paiement trouvé</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialisation des données des graphiques
+    const categoryData = {
+      labels: JSON.parse('{{ categories|default:"[]" |escapejs }}'),
+      datasets: [{
+        label: 'Nombre d\'emprunts',
+        data: JSON.parse('{{ emprunts_par_categorie|default:"[]" |escapejs }}'),
+        backgroundColor: [
+          '#1a3a5a', '#3f6a95', '#5280af', '#728eab', '#90a4ae',
+          '#263238', '#37474f', '#455a64', '#546e7a', '#607d8b'
+        ],
+        borderWidth: 0
+      }]
+    };
+
+    const activityData = {
+      labels: JSON.parse('{{ mois|default:"[]" |escapejs }}'),
+      datasets: [
+        {
+          label: 'Emprunts',
+          data: JSON.parse('{{ emprunts_par_mois|default:"[]" |escapejs }}'),
+          borderColor: '#1a3a5a',
+          backgroundColor: 'rgba(26, 58, 90, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Réservations',
+          data: JSON.parse('{{ reservations_par_mois|default:"[]" |escapejs }}'),
+          borderColor: '#3f6a95',
+          backgroundColor: 'rgba(63, 106, 149, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    // Configuration des graphiques
+    var categoryConfig = {
+      type: 'doughnut',
+      data: categoryData,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    };
+
+    var activityConfig = {
+      type: 'line',
+      data: activityData,
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    };
+
+    // Initialisation des graphiques
+    window.addEventListener('DOMContentLoaded', function() {
+      var categoryChart = new Chart(
+        document.getElementById('categoryChart'),
+        categoryConfig
+      );
+
+      var activityChart = new Chart(
+        document.getElementById('activityChart'),
+        activityConfig
+      );
+    });
+  </script>
+  
+  <!-- Modal d'ajout de livre -->
+  <div id="addBookModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Ajouter un nouveau livre</h2>
+        <span class="close" onclick="closeBookModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addBookForm" method="POST" enctype="multipart/form-data" action="/ajouter-livre/" onsubmit="submitBookForm(event)">
+          {% csrf_token %}
+          <input type="hidden" name="formAction" value="add">
+          
+          <div class="form-group">
+            <label for="titre">Titre <span class="required">*</span></label>
+            <input type="text" id="titre" name="titre" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="auteur">Auteur <span class="required">*</span></label>
+            <input type="text" id="auteur" name="auteur" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="categorie">Catégorie <span class="required">*</span></label>
+            <select id="categorie" name="categorie" required>
+              <option value="" disabled selected>Sélectionnez une catégorie</option>
+              <option value="Roman">Roman</option>
+              <option value="Science-fiction">Science-fiction</option>
+              <option value="Fantastique">Fantastique</option>
+              <option value="Policier">Policier</option>
+              <option value="Biographie">Biographie</option>
+              <option value="Histoire">Histoire</option>
+              <option value="Philosophie">Philosophie</option>
+              <option value="Sciences">Sciences</option>
+              <option value="Art">Art</option>
+              <option value="Cuisine">Cuisine</option>
+              <option value="Voyage">Voyage</option>
+              <option value="Jeunesse">Jeunesse</option>
+              <option value="BD">BD</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="stock">Stock <span class="required">*</span></label>
+            <input type="number" id="stock" name="stock" min="0" value="1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="prix">Prix (MAD) <span class="required">*</span></label>
+            <input type="number" id="prix" name="prix" min="0" step="0.01" value="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="photo">Photo de couverture <span class="required">*</span></label>
+            <input type="file" id="photo" name="photo" accept="image/*" required>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeBookModal()">Annuler</button>
+            <button type="submit" class="btn-submit">Ajouter le livre</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal d'ajout d'utilisateur -->
+  <div id="addUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Ajouter un nouvel utilisateur</h2>
+        <span class="close" onclick="closeUserModal('addUserModal')">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addUserForm" method="POST" action="/api/users/add/" onsubmit="submitAddUserForm(event)">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur <span class="required">*</span></label>
+            <input type="text" id="username" name="username" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Mot de passe <span class="required">*</span></label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="role">Rôle <span class="required">*</span></label>
+            <select id="role" name="role" required>
+              <option value="reader" selected>Lecteur</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeUserModal('addUserModal')">Annuler</button>
+            <button type="submit" class="btn-submit">Ajouter l'utilisateur</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de visualisation des détails d'un utilisateur -->
+  <div id="viewUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Détails de l'utilisateur</h2>
+        <span class="close" onclick="closeUserModal('viewUserModal')">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="detail-group">
+          <label>Nom d'utilisateur:</label>
+          <p id="user-username"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Email:</label>
+          <p id="user-email"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Date d'inscription:</label>
+          <p id="user-date-joined"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Rôle:</label>
+          <p id="user-role"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Statut:</label>
+          <p id="user-status"></p>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeUserModal('viewUserModal')">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal d'édition d'un utilisateur -->
+  <div id="editUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Modifier l'utilisateur</h2>
+        <span class="close" onclick="closeUserModal('editUserModal')">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="editUserForm" method="POST" onsubmit="submitEditUserForm(event)">
+          {% csrf_token %}
+          <input type="hidden" name="userId" value="">
+          
+          <div class="form-group">
+            <label for="edit-username">Nom d'utilisateur <span class="required">*</span></label>
+            <input type="text" id="edit-username" name="username" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-email">Email <span class="required">*</span></label>
+            <input type="email" id="edit-email" name="email" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-role">Rôle <span class="required">*</span></label>
+            <select id="edit-role" name="role" required>
+              <option value="reader">Lecteur</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-status">Statut <span class="required">*</span></label>
+            <select id="edit-status" name="status" required>
+              <option value="active">Actif</option>
+              <option value="inactive">Inactif</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeUserModal('editUserModal')">Annuler</button>
+            <button type="submit" class="btn-submit">Enregistrer les modifications</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de validation d'une réservation -->
+  <div id="validateReservationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Valider la réservation</h2>
+        <span class="close" onclick="closeLoanModal('validateReservationModal')">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="validateReservationForm" method="POST" onsubmit="submitValidateReservationForm(event)">
+          {% csrf_token %}
+          <input type="hidden" name="reservationId" value="">
+          
+          <div class="form-group">
+            <label for="date_emprunt">Date d'emprunt <span class="required">*</span></label>
+            <input type="date" id="date_emprunt" name="date_emprunt" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="duree">Durée (jours) <span class="required">*</span></label>
+            <input type="number" id="duree" name="duree" min="1" value="14" required>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeLoanModal('validateReservationModal')">Annuler</button>
+            <button type="submit" class="btn-submit">Valider l'emprunt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de visualisation des détails d'un avis -->
+  <div id="viewReviewModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Détails de l'avis</h2>
+        <span class="close" onclick="closeReviewModal('viewReviewModal')">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="detail-group">
+          <label>Livre:</label>
+          <p id="review-livre"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Utilisateur:</label>
+          <p id="review-user"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Date:</label>
+          <p id="review-date"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Note:</label>
+          <p id="review-note"></p>
+        </div>
+        
+        <div class="detail-group">
+          <label>Commentaire:</label>
+          <p id="review-commentaire"></p>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeReviewModal('viewReviewModal')">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Fonction pour fermer le modal d'ajout de livre
+    function closeBookModal() {
+      const modal = document.getElementById('addBookModal');
+      if (modal) modal.style.display = 'none';
+    }
+    
+    // Fermer le modal si l'utilisateur clique en dehors
+    window.onclick = function(event) {
+      const modal = document.getElementById('addBookModal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+    
+    // Fonction pour soumettre le formulaire d'ajout de livre
+    function submitBookForm(event) {
+      event.preventDefault();
+      console.log('Soumission du formulaire d\'ajout de livre');
+      
+      const form = document.getElementById('addBookForm');
+      const formData = new FormData(form);
+      
+      // Afficher un indicateur de chargement
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Chargement...';
+      submitBtn.disabled = true;
+      
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        // Ne pas définir Content-Type, car FormData le fait automatiquement avec multipart/form-data
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Fermer le modal
+          closeBookModal();
+          
+          // Afficher un message de succès
+          alert('Livre ajouté avec succès!');
+          
+          // Recharger la section des livres
+          loadDashboardContent('books');
+        } else {
+          alert('Erreur: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de l\'ajout du livre.');
+      })
+      .finally(() => {
+        // Rétablir le bouton
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>

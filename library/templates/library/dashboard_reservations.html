@@ -1,0 +1,52 @@
+<!-- Section Réservations -->
+<div id="reservations-content" class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Gestion des Réservations</h3>
+    </div>
+    <table class="crud-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Livre</th>
+          <th>Lecteur</th>
+          <th>Date de réservation</th>
+          <th>Payée</th>
+          <th>Notification</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reservation in all_reservations %}
+        <tr>
+          <td>{{ reservation.id }}</td>
+          <td>{{ reservation.livre.titre }}</td>
+          <td>{{ reservation.lecteur.username }}</td>
+          <td>{{ reservation.date_reservation|date:"d/m/Y H:i" }}</td>
+          <td>
+            {% if reservation.est_payee %}
+              <span class="status-badge status-available">Oui</span>
+            {% else %}
+              <span class="status-badge status-unavailable">Non</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if reservation.notification_envoyee %}
+              <span class="status-badge status-available">Envoyée</span>
+            {% else %}
+              <span class="status-badge status-unavailable">Non envoyée</span>
+            {% endif %}
+          </td>
+          <td class="crud-actions">
+            <button class="btn-crud btn-view" onclick="viewReservationDetails('{{ reservation.id }}')"><i class="fas fa-eye"></i></button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">Aucune réservation trouvée</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

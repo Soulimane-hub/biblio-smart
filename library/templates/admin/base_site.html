@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+<a href="/home/" class="button" style="margin-left: 20px; background: #0d6efd; color: white; padding: 6px 16px; border-radius: 6px; text-decoration: none;">Aller à l'accueil</a>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

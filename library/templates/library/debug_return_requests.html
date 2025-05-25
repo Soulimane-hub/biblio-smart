@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Débogage des Demandes de Retour</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #1a3a5a;
+            border-bottom: 2px solid #1a3a5a;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f5f9ff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #5280af;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #1a3a5a;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .status-returned {
+            background-color: #4caf50;
+            color: white;
+        }
+        .empty-message {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Débogage des Demandes de Retour</h1>
+    
+    <div class="section">
+        <h2>1. Tous les Emprunts</h2>
+        <p>Nombre total d'emprunts: {{ all_emprunts.count }}</p>
+        
+        {% if all_emprunts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Livre</th>
+                    <th>Lecteur</th>
+                    <th>Date d'emprunt</th>
+                    <th>Demande de retour</th>
+                    <th>Date demande</th>
+                    <th>Est retourné</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprunt in all_emprunts %}
+                <tr>
+                    <td>{{ emprunt.id }}</td>
+                    <td>{{ emprunt.livre.titre }}</td>
+                    <td>{{ emprunt.lecteur.username }}</td>
+                    <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if emprunt.demande_retour %}
+                        <span class="status-badge status-pending">Oui</span>
+                        {% else %}
+                        <span>Non</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if emprunt.date_demande_retour %}
+                        {{ emprunt.date_demande_retour|date:"d/m/Y H:i" }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if emprunt.est_retourne %}
+                        <span class="status-badge status-returned">Oui</span>
+                        {% else %}
+                        <span>Non</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Aucun emprunt trouvé dans la base de données.</p>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>2. Emprunts avec Demande de Retour</h2>
+        <p>Nombre d'emprunts avec demande_retour=True: {{ emprunts_with_demande.count }}</p>
+        
+        {% if emprunts_with_demande %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Livre</th>
+                    <th>Lecteur</th>
+                    <th>Date d'emprunt</th>
+                    <th>Date demande</th>
+                    <th>Est retourné</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprunt in emprunts_with_demande %}
+                <tr>
+                    <td>{{ emprunt.id }}</td>
+                    <td>{{ emprunt.livre.titre }}</td>
+                    <td>{{ emprunt.lecteur.username }}</td>
+                    <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+                    <td>{{ emprunt.date_demande_retour|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if emprunt.est_retourne %}
+                        <span class="status-badge status-returned">Oui</span>
+                        {% else %}
+                        <span>Non</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Aucun emprunt avec demande de retour trouvé.</p>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>3. Emprunts avec RetourLivre en Attente</h2>
+        <p>Nombre d'emprunts avec RetourLivre en attente: {{ emprunts_with_retour.count }}</p>
+        
+        {% if emprunts_with_retour %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Livre</th>
+                    <th>Lecteur</th>
+                    <th>Date d'emprunt</th>
+                    <th>Date demande RetourLivre</th>
+                    <th>Est retourné</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprunt in emprunts_with_retour %}
+                <tr>
+                    <td>{{ emprunt.id }}</td>
+                    <td>{{ emprunt.livre.titre }}</td>
+                    <td>{{ emprunt.lecteur.username }}</td>
+                    <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+                    <td>
+                        {% for retour in emprunt.retours.all %}
+                            {% if retour.statut == 'en_attente' %}
+                                {{ retour.date_demande|date:"d/m/Y H:i" }}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if emprunt.est_retourne %}
+                        <span class="status-badge status-returned">Oui</span>
+                        {% else %}
+                        <span>Non</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Aucun emprunt avec RetourLivre en attente trouvé.</p>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <h2>4. Demandes de Retour pour le Tableau de Bord</h2>
+        <p>Nombre de demandes de retour pour le tableau de bord: {{ demandes_retour.count }}</p>
+        
+        {% if demandes_retour %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Livre</th>
+                    <th>Lecteur</th>
+                    <th>Date d'emprunt</th>
+                    <th>Source de la demande</th>
+                    <th>Date demande</th>
+                    <th>Est retourné</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emprunt in demandes_retour %}
+                <tr>
+                    <td>{{ emprunt.id }}</td>
+                    <td>{{ emprunt.livre.titre }}</td>
+                    <td>{{ emprunt.lecteur.username }}</td>
+                    <td>{{ emprunt.date_emprunt|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if emprunt.demande_retour %}
+                            Champ demande_retour
+                        {% endif %}
+                        {% if emprunt.retours.filter.exists %}
+                            {% if emprunt.demande_retour %}+ {% endif %}RetourLivre
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if emprunt.date_demande_retour %}
+                            {{ emprunt.date_demande_retour|date:"d/m/Y H:i" }}
+                        {% else %}
+                            {% for retour in emprunt.retours.all %}
+                                {% if retour.statut == 'en_attente' %}
+                                    {{ retour.date_demande|date:"d/m/Y H:i" }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if emprunt.est_retourne %}
+                        <span class="status-badge status-returned">Oui</span>
+                        {% else %}
+                        <span>Non</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-message">Aucune demande de retour trouvée pour le tableau de bord.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

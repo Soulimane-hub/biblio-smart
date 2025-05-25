@@ -1,0 +1,121 @@
+{% extends 'library/dashboard_base.html' %}
+
+{% block title %}Gérer les photos du livre{% endblock %}
+
+{% block dashboard_content %}
+<div class="dashboard-content">
+  <div class="card">
+    <div class="card-header">
+      <h2>Gérer les photos du livre "{{ livre.titre }}"</h2>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h4>Photos actuelles</h4>
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">Image principale</div>
+                <div class="card-body text-center">
+                  {% if livre.image %}
+                    <img src="{{ livre.image.url }}" alt="{{ livre.titre }}" class="img-fluid book-image">
+                  {% else %}
+                    <div class="no-image">
+                      <i class="fas fa-image"></i>
+                      <p>Aucune image principale</p>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">Photo secondaire</div>
+                <div class="card-body text-center">
+                  {% if livre.photo %}
+                    <img src="{{ livre.photo.url }}" alt="{{ livre.titre }} - Photo" class="img-fluid book-image">
+                  {% else %}
+                    <div class="no-image">
+                      <i class="fas fa-image"></i>
+                      <p>Aucune photo secondaire</p>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <h4>Modifier les photos</h4>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label for="{{ form.image.id_for_label }}" class="form-label">{{ form.image.label }}</label>
+              {{ form.image }}
+              {% if form.image.help_text %}
+                <div class="form-text">{{ form.image.help_text }}</div>
+              {% endif %}
+              {% if form.image.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.image.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="mb-3">
+              <label for="{{ form.photo.id_for_label }}" class="form-label">{{ form.photo.label }}</label>
+              {{ form.photo }}
+              {% if form.photo.help_text %}
+                <div class="form-text">{{ form.photo.help_text }}</div>
+              {% endif %}
+              {% if form.photo.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.photo.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'dashboard_books' %}" class="btn btn-secondary">Annuler</a>
+              <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .book-image {
+    max-height: 200px;
+    object-fit: contain;
+  }
+  
+  .no-image {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .no-image i {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 10px;
+  }
+  
+  .no-image p {
+    color: #6c757d;
+    margin: 0;
+  }
+</style>
+{% endblock %}

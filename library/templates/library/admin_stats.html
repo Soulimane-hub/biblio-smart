@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Statistiques de la bibliothèque</h1>
+<div style="max-width: 600px; margin-bottom: 40px;">
+    <canvas id="statsBar" height="120"></canvas>
+</div>
+<ul>
+    <li>Nombre total de livres : {{ total_livres }}</li>
+    <li>Nombre total d'emprunts : {{ total_emprunts }}</li>
+    <li>Nombre total de réservations : {{ total_reservations }}</li>
+    <li>Nombre de lecteurs avec amende : {{ lecteurs_avec_amende }}</li>
+</ul>
+<a href="/admin/">Retour à l'admin</a>
+
+<!-- Chart.js -->
+<script src="/static/library/chart.min.js"></script>
+<script>
+const ctx = document.getElementById('statsBar').getContext('2d');
+const statsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [
+            'Livres',
+            'Emprunts',
+            'Réservations',
+            'Lecteurs avec amende'
+        ],
+        datasets: [{
+            label: 'Statistiques',
+            data: [
+                Number('{{ total_livres|default:0 }}'),
+                Number('{{ total_emprunts|default:0 }}'),
+                Number('{{ total_reservations|default:0 }}'),
+                Number('{{ lecteurs_avec_amende|default:0 }}')
+            ],
+            backgroundColor: [
+                '#4e79a7',
+                '#f28e2b',
+                '#e15759',
+                '#76b7b2'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: 'Vue graphique des statistiques principales'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

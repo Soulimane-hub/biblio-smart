@@ -1,0 +1,445 @@
+{% extends 'library/base_payment.html' %}
+{% load static %}
+
+{% block content %}
+<main>
+<!-- Inclure le popup d'amende -->
+{% include 'library/partials/amende_popup.html' %}
+<style>
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes cardFloat {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+  }
+  
+  .card-form { 
+    background: white; 
+    padding: 35px 28px 28px 28px; 
+    border-radius: 18px; 
+    box-shadow: 0 8px 32px rgba(26, 58, 90, 0.15); 
+    width: 420px; 
+    margin: 50px auto 0 auto; 
+    position: relative; 
+    transition: all 0.3s ease; 
+    animation: fadeIn 0.5s ease-out forwards;
+    border-left: 4px solid #5280af; /* Bleu clair pour les accents */
+  }
+  
+  .card-form:hover { 
+    box-shadow: 0 12px 40px rgba(26, 58, 90, 0.25); 
+    animation: cardFloat 3s ease-in-out infinite;
+  }
+  
+  .pay-logo { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin-bottom: 20px; 
+  }
+  
+  .pay-logo img { 
+    width: 56px; 
+    height: 56px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+    padding: 8px;
+    background: linear-gradient(135deg, #f0f5fa, #ffffff);
+    border: 1px solid #728eab;
+  }
+  
+  h2 { 
+    text-align: center; 
+    margin-bottom: 25px; 
+    color: #1a3a5a; /* Bleu foncé */
+    font-size: 1.8rem; 
+    letter-spacing: 1px; 
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 12px;
+  }
+  
+  h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, #f0f5fa, #5280af, #f0f5fa); /* Dégradé avec bleu clair au centre */
+    border-radius: 3px;
+  }
+  
+  label { 
+    font-weight: 600; 
+    margin-top: 18px; 
+    display: block; 
+    color: #1a3a5a; /* Bleu foncé */
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  
+  input[type="text"], input[type="number"] { 
+    width: 100%; 
+    padding: 12px 15px; 
+    margin-top: 5px; 
+    border: 1px solid #728eab; /* Bleu gris clair */
+    border-radius: 8px; 
+    font-size: 16px; 
+    transition: all 0.3s ease;
+    background-color: #f0f5fa; /* Bleu très clair */
+  }
+  
+  input[type="text"]:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: #5280af; /* Bleu clair pour les accents */
+    box-shadow: 0 0 0 3px rgba(82, 128, 175, 0.2);
+    background-color: #ffffff;
+  }
+  
+  .row { 
+    display: flex; 
+    gap: 15px; 
+    align-items: flex-end; 
+  }
+  
+  .row > div { 
+    flex: 1; 
+  }
+  
+  .row label { 
+    margin-bottom: 6px; 
+    display: block; 
+  }
+  
+  .btn-pay { 
+    margin-top: 30px; 
+    width: 100%; 
+    padding: 14px; 
+    background-color: #1a3a5a; /* Bleu foncé */
+    color: #ffffff; /* Blanc */
+    border: none; 
+    font-size: 16px; 
+    font-weight: 600;
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 6px rgba(26, 58, 90, 0.2);
+  }
+  
+  .btn-pay:hover { 
+    background-color: #3f6a95; /* Bleu moyen */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(26, 58, 90, 0.3);
+  }
+  
+  .btn-pay:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(26, 58, 90, 0.2);
+  }
+  
+  .secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 8px;
+    color: #3f6a95; /* Bleu moyen */
+    font-size: 0.85rem;
+  }
+  
+  .card-info {
+    background-color: #f0f5fa; /* Bleu très clair */
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 25px;
+    border-left: 3px solid #5280af; /* Bleu clair pour les accents */
+    font-size: 0.9rem;
+    color: #1a3a5a; /* Bleu foncé */
+  }
+  
+  .card-info p {
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  .messages {
+    width: 420px;
+    margin: 20px auto;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .messages li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .messages li.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #ef9a9a;
+  }
+  
+  .messages li.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #a5d6a7;
+  }
+</style>
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+<form class="card-form" method="post">
+  {% csrf_token %}
+  <div class="pay-logo">
+    <img src="https://cdn-icons-png.flaticon.com/512/891/891419.png" alt="Paiement" loading="lazy" style="transform: scale(1.1); transition: transform 0.3s ease;">
+  </div>
+  <h2 style="background: linear-gradient(to right, #1a3a5a, #5280af); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">Paiement de réservation</h2>
+  
+  <div class="card-info">
+    <p><strong>Livre :</strong> {% if reservation %}{{ reservation.livre.titre }}{% else %}{{ livre.titre }}{% endif %}</p>
+    <p><strong>Montant :</strong> {% if reservation %}{{ reservation.livre.prix }}{% else %}{{ livre.prix }}{% endif %} MAD</p>
+  </div>
+  
+  {% csrf_token %}
+  <label for="cardholder"><i class="fas fa-user"></i> Nom du titulaire</label>
+  <input type="text" id="cardholder" name="cardholder" placeholder="Nom complet sur la carte" required>
+  
+  <label for="cardnumber"><i class="fas fa-credit-card"></i> Numéro de carte</label>
+  <input type="text" id="cardnumber" name="cardnumber" maxlength="19" placeholder="1234 5678 9012 3456" required pattern="[0-9 ]{13,19}">
+  
+  <div class="row">
+    <div>
+      <label for="expdate"><i class="fas fa-calendar-alt"></i> Date d'expiration</label>
+      <input type="text" id="expdate" name="expdate" maxlength="5" placeholder="MM/AA" required pattern="(0[1-9]|1[0-2])\/\d{2}">
+    </div>
+    <div>
+      <label for="cvv"><i class="fas fa-lock"></i> CVV</label>
+      <input type="text" id="cvv" name="cvv" maxlength="4" placeholder="123" required pattern="\d{3,4}">
+    </div>
+  </div>
+  
+  <button class="btn-pay" type="submit" style="background: linear-gradient(to right, #1a3a5a, #3f6a95); box-shadow: 0 4px 15px rgba(26, 58, 90, 0.3); transform: translateY(0); transition: all 0.3s ease;">
+    <i class="fas fa-shield-alt"></i> Payer {% if reservation %}{{ reservation.livre.prix }}{% else %}{{ livre.prix }}{% endif %} MAD
+  </button>
+  
+  <div class="secure-badge">
+    <i class="fas fa-lock"></i> Paiement sécurisé par BiblioSmart
+  </div>
+
+  <div id="expdate-error" style="display:none;"></div>
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const cardNumberInput = document.getElementById('cardnumber');
+  const expDateInput = document.getElementById('expdate');
+  const cvvInput = document.getElementById('cvv');
+  const cardholderInput = document.getElementById('cardholder');
+  const payButton = document.querySelector('.btn-pay');
+  const form = document.querySelector('.card-form');
+  
+  // Format the card number with spaces
+  cardNumberInput.addEventListener('input', function(e) {
+    // Remove all non-digit characters
+    let value = e.target.value.replace(/\D/g, '');
+    // Add a space after every 4 digits
+    value = value.replace(/(.{4})/g, '$1 ').trim();
+    e.target.value = value;
+    
+    // Validate card number length
+    if (value.replace(/\s/g, '').length >= 13 && value.replace(/\s/g, '').length <= 19) {
+      this.classList.add('valid');
+      this.classList.remove('invalid');
+    } else {
+      this.classList.remove('valid');
+      if (value.length > 0) {
+        this.classList.add('invalid');
+      } else {
+        this.classList.remove('invalid');
+      }
+    }
+  });
+
+  // Format the expiration date with a slash
+  expDateInput.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 2) {
+      value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    e.target.value = value;
+    
+    // Validate expiration date format
+    const regex = /(0[1-9]|1[0-2])\/\d{2}/;
+    if (regex.test(value)) {
+      this.classList.add('valid');
+      this.classList.remove('invalid');
+    } else {
+      this.classList.remove('valid');
+      if (value.length > 0) {
+        this.classList.add('invalid');
+      } else {
+        this.classList.remove('invalid');
+      }
+    }
+  });
+  
+  // Validate CVV
+  cvvInput.addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    e.target.value = value;
+    
+    if (value.length >= 3 && value.length <= 4) {
+      this.classList.add('valid');
+      this.classList.remove('invalid');
+    } else {
+      this.classList.remove('valid');
+      if (value.length > 0) {
+        this.classList.add('invalid');
+      } else {
+        this.classList.remove('invalid');
+      }
+    }
+  });
+  
+  // Validate cardholder name
+  cardholderInput.addEventListener('input', function(e) {
+    if (this.value.length >= 3) {
+      this.classList.add('valid');
+      this.classList.remove('invalid');
+    } else {
+      this.classList.remove('valid');
+      if (this.value.length > 0) {
+        this.classList.add('invalid');
+      } else {
+        this.classList.remove('invalid');
+      }
+    }
+  });
+  
+  // Add animation to the pay button on hover
+  payButton.addEventListener('mouseenter', function() {
+    this.innerHTML = '<i class="fas fa-shield-alt"></i> Payer en toute sécurité';
+  });
+  
+  payButton.addEventListener('mouseleave', function() {
+    this.innerHTML = '<i class="fas fa-shield-alt"></i> Payer {% if reservation %}{{ reservation.livre.prix }}{% else %}{{ livre.prix }}{% endif %} MAD';
+  });
+  
+  // Form submission with validation
+  form.addEventListener('submit', function(e) {
+    let isValid = true;
+    const errorDiv = document.getElementById('expdate-error');
+    
+    // Check all required fields
+    [cardNumberInput, expDateInput, cvvInput, cardholderInput].forEach(input => {
+      if (!input.value) {
+        input.classList.add('invalid');
+        isValid = false;
+      }
+    });
+    
+    // Check if expiration date is valid
+    if (expDateInput.value) {
+      const [month, year] = expDateInput.value.split('/');
+      if (month && year) {
+        const now = new Date();
+        const currentYear = now.getFullYear() % 100; // Get last 2 digits of year
+        const currentMonth = now.getMonth() + 1; // getMonth() is 0-indexed
+        
+        const expMonth = parseInt(month, 10);
+        const expYear = parseInt(year, 10);
+        
+        if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+          e.preventDefault();
+          errorDiv.textContent = "La date d'expiration est dépassée.";
+          errorDiv.style.display = 'block';
+          expDateInput.classList.add('invalid');
+          isValid = false;
+        } else {
+          errorDiv.style.display = 'none';
+        }
+      }
+    }
+    
+    if (!isValid) {
+      e.preventDefault();
+      // Shake the form to indicate error
+      form.classList.add('shake');
+      setTimeout(() => {
+        form.classList.remove('shake');
+      }, 500);
+    } else {
+      // Add loading state to button
+      payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement en cours...';
+      payButton.disabled = true;
+    }
+  });
+});
+</script>
+<style>
+  /* Additional styles for form validation */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  
+  .shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+  
+  input.valid {
+    border-color: #a5d6a7 !important;
+    background-color: #f8fff8 !important;
+  }
+  
+  input.invalid {
+    border-color: #ef9a9a !important;
+    background-color: #fff8f8 !important;
+  }
+  
+  .fa-spinner {
+    animation: spin 1s linear infinite;
+  }
+  
+  /* Styles pour les messages d'erreur */
+  #expdate-error {
+    color: #f44336;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    border-left: 3px solid #f44336;
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+</main>
+{% endblock %}

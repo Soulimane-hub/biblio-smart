@@ -1,0 +1,164 @@
+{% extends 'library/dashboard_base.html' %}
+
+{% block title %}Historique des emprunts{% endblock %}
+
+{% block dashboard_content %}
+<div class="dashboard-content">
+  <div class="data-table">
+    <div class="table-header">
+      <h3 class="table-title">Historique des emprunts</h3>
+    </div>
+    
+    <div class="filter-bar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Rechercher un livre ou un lecteur...">
+        <button id="searchBtn"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="filter-options">
+        <select id="actionFilter">
+          <option value="">Toutes les actions</option>
+          <option value="emprunt">Emprunt</option>
+          <option value="demande_retour">Demande de retour</option>
+          <option value="retour_valide">Retour validé</option>
+          <option value="retour_refuse">Retour refusé</option>
+          <option value="amende">Amende générée</option>
+          <option value="paiement_amende">Paiement d'amende</option>
+        </select>
+      </div>
+    </div>
+    
+    <table class="crud-table">
+      <thead>
+        <tr>
+          <th>Livre</th>
+          <th>Lecteur</th>
+          <th>Action</th>
+          <th>Date</th>
+          <th>Commentaire</th>
+          <th>Administrateur</th>
+        </tr>
+      </thead>
+      <tbody id="historyTableBody">
+        {% for historique in historiques %}
+        <tr class="history-row" data-action="{{ historique.action }}">
+          <td><a href="{% url 'book_details' historique.emprunt.livre.id %}" class="book-link">{{ historique.emprunt.livre.titre }}</a></td>
+          <td>{{ historique.emprunt.lecteur.username }}</td>
+          <td>
+            <span class="status-badge 
+              {% if historique.action == 'emprunt' %}status-pending
+              {% elif historique.action == 'demande_retour' %}status-warning
+              {% elif historique.action == 'retour_valide' %}status-available
+              {% elif historique.action == 'retour_refuse' %}status-unavailable
+              {% elif historique.action == 'amende' %}status-danger
+              {% elif historique.action == 'paiement_amende' %}status-success
+              {% endif %}">
+              {{ historique.get_action_display }}
+            </span>
+          </td>
+          <td>{{ historique.date_action|date:"d/m/Y H:i" }}</td>
+          <td>{{ historique.commentaire|default:"-" }}</td>
+          <td>{{ historique.utilisateur.username|default:"Système" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center">Aucun historique trouvé</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .filter-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .search-box {
+    display: flex;
+    max-width: 300px;
+  }
+  
+  .search-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+  }
+  
+  .search-box button {
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+  }
+  
+  .filter-options select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .status-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .status-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .book-link {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .book-link:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const actionFilter = document.getElementById('actionFilter');
+    const historyRows = document.querySelectorAll('.history-row');
+    
+    // Fonction de recherche
+    function applyFilters() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const actionValue = actionFilter.value;
+      
+      historyRows.forEach(row => {
+        const rowText = row.textContent.toLowerCase();
+        const rowAction = row.dataset.action;
+        
+        const matchesSearch = searchTerm === '' || rowText.includes(searchTerm);
+        const matchesAction = actionValue === '' || rowAction === actionValue;
+        
+        row.style.display = matchesSearch && matchesAction ? '' : 'none';
+      });
+    }
+    
+    // Événements
+    searchBtn.addEventListener('click', applyFilters);
+    searchInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        applyFilters();
+      }
+    });
+    actionFilter.addEventListener('change', applyFilters);
+  });
+</script>
+{% endblock %}

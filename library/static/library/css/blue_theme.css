@@ -1,0 +1,182 @@
+/* Thème bleu pour BiblioSmart */
+
+/* Couleurs de base */
+:root {
+  --primary-dark: #1a3a5a;    /* Bleu foncé */
+  --primary-medium: #3f6a95;  /* Bleu moyen */
+  --primary-light: #5280af;   /* Bleu clair */
+  --accent-light: #728eab;    /* Bleu gris clair */
+  --background: #f0f5fa;      /* Fond bleu pâle */
+  --text-dark: #1a3a5a;       /* Texte bleu foncé */
+  --text-medium: #3f6a95;     /* Texte bleu moyen */
+  --white: #ffffff;
+  --success: #3c6e47;
+  --danger: #8a383f;
+}
+
+/* Styles généraux */
+body {
+  background: var(--background);
+  color: var(--text-dark);
+}
+
+/* Navbar */
+.navbar {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-medium));
+  color: var(--background);
+  border-bottom: 3px solid var(--primary-light);
+}
+
+.navbar a {
+  color: var(--white);
+}
+
+.navbar a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Boutons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-medium), var(--primary-dark));
+  color: var(--white);
+  border: 1px solid var(--primary-light);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-medium), var(--primary-dark));
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-medium));
+  color: var(--white);
+  border: 1px solid var(--primary-light);
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-medium));
+  filter: brightness(1.1);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary-dark);
+  border: 2px solid var(--primary-medium);
+}
+
+.btn-outline:hover {
+  background: rgba(58, 106, 154, 0.1);
+}
+
+/* Éléments décoratifs */
+.book-header {
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary-medium), var(--primary-light), var(--primary-medium), var(--primary-dark));
+}
+
+.book-header-small {
+  background: linear-gradient(90deg, var(--primary-light), var(--accent-light), var(--primary-light));
+}
+
+/* Cartes et conteneurs */
+.book-meta, .filter-section, .book-card, .rating-section, .reviews-section, .similar-books, .reservation-card, .no-results {
+  background: var(--white);
+  border: 1px solid var(--accent-light);
+}
+
+.book-category {
+  background: var(--accent-light);
+  color: var(--primary-dark);
+}
+
+/* Icônes et éléments interactifs */
+.meta-icon {
+  background: linear-gradient(135deg, var(--primary-medium), var(--primary-dark));
+  color: var(--white);
+}
+
+.meta-label {
+  color: var(--primary-medium);
+}
+
+.meta-value {
+  color: var(--text-dark);
+}
+
+.stars {
+  color: var(--primary-light);
+}
+
+.rating-number {
+  color: var(--primary-medium);
+}
+
+/* Titres */
+h1, h2, h3, h4, h5, h6, .section-title, .book-title, .reservation-title {
+  color: var(--primary-dark);
+}
+
+.section-title, .book-title, .reservation-title {
+  border-bottom: 2px solid var(--primary-light);
+}
+
+/* Catégories */
+.category-tag {
+  background: var(--background);
+  color: var(--primary-dark);
+  border: 1px solid var(--accent-light);
+}
+
+.category-tag:hover {
+  background: var(--accent-light);
+}
+
+.category-tag.active {
+  background: var(--primary-dark);
+  color: var(--white);
+}
+
+/* Overlay */
+.book-overlay {
+  background: rgba(26, 58, 90, 0.7);
+}
+
+/* Rubans */
+.ribbon-available {
+  background: linear-gradient(135deg, transparent 0%, var(--success) 0%);
+}
+
+.ribbon-unavailable {
+  background: linear-gradient(135deg, transparent 0%, var(--danger) 0%);
+}
+
+/* Statuts */
+.status-available {
+  background: #e8f0e5;
+  color: var(--success);
+  border: 1px solid #c3e6cb;
+}
+
+.status-unavailable {
+  background: #f8e7e9;
+  color: var(--danger);
+  border: 1px solid #f5c6cb;
+}
+
+/* Info boxes */
+.info-success {
+  background-color: #e8f0e5;
+  border-left: 4px solid var(--success);
+  color: var(--success);
+}
+
+.info-warning {
+  background-color: #f8e7e9;
+  border-left: 4px solid var(--danger);
+  color: var(--danger);
+}
+
+/* Autres éléments */
+.card-header {
+  background: linear-gradient(135deg, var(--primary-medium), var(--primary-dark));
+  color: var(--white);
+}
