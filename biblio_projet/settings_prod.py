@@ -17,24 +17,12 @@ if 'HEROKU_APP_NAME' in os.environ:
 
 # Configuration de la base de données pour Railway
 # Utilise la variable d'environnement DATABASE_URL fournie par Railway
-DATABASE_URL = os.environ.get('DATABASE_URL', None)
-if DATABASE_URL:
-    # Configure avec l'URL de la base de données Railway
-    DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
-    }
-else:
-    # Configuration par défaut pour le développement local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('DB_NAME', 'biblio_db'),
-            'USER': os.environ.get('DB_USER', 'root'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '3306'),
-        }
-    }
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Force l'utilisation de l'URL de la base de données Railway
+DATABASES = {
+    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
+}
 
 # Configuration des fichiers statiques
 STATIC_URL = '/static/'
@@ -57,8 +45,8 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'bibliotheque@example.
 SECURE_HSTS_SECONDS = 31536000  # 1 an
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False  # Désactivé pour Railway
+SESSION_COOKIE_SECURE = False  # Désactivé pour Railway
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
