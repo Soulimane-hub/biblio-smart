@@ -1,5 +1,4 @@
 Django==4.2.20
-mysqlclient==2.2.0
 Pillow==10.0.0
 django-simpleui==2023.12.12
 reportlab==4.0.4
